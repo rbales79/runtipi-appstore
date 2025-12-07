@@ -194,8 +194,7 @@ jobs:
           - \`custom\` branch: Manually maintained custom apps
           - \`main\` branch: Merged combination of both
           
-          **Review and merge when ready!**" \
-            --label "automated,merge"
+          **Review and merge when ready!**"
 
       - name: Summary
         run: |
