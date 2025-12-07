@@ -1,0 +1,39 @@
+{
+  "services": [
+    {
+      "name": "write-freely",
+      "image": "nephatrine/write-freely:0.16",
+      "isMain": true,
+      "internalPort": 8080,
+      "addPorts": [
+        {
+          "hostPort": 70,
+          "containerPort": 70,
+          "tcp": true
+        }
+      ],
+      "environment": [
+        {
+          "key": "TZ",
+          "value": "${TZ}"
+        },
+        {
+          "key": "PUID",
+          "value": 1000
+        },
+        {
+          "key": "PGID",
+          "value": 1000
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/config",
+          "containerPath": "/mnt/config"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

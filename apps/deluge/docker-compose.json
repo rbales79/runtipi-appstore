@@ -1,0 +1,48 @@
+{
+  "services": [
+    {
+      "name": "deluge",
+      "image": "lscr.io/linuxserver/deluge:18.04.1",
+      "isMain": true,
+      "internalPort": 8112,
+      "addPorts": [
+        {
+          "hostPort": 6881,
+          "containerPort": 6881,
+          "tcp": true,
+          "udp": true
+        }
+      ],
+      "environment": [
+        {
+          "key": "PUID",
+          "value": "1000"
+        },
+        {
+          "key": "PGID",
+          "value": "1000"
+        },
+        {
+          "key": "TZ",
+          "value": "${TZ}"
+        },
+        {
+          "key": "DELUGE_LOGLEVEL",
+          "value": "error"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/deluge/config",
+          "containerPath": "/config"
+        },
+        {
+          "hostPath": "${ROOT_FOLDER_HOST}/media/torrents",
+          "containerPath": "/media/torrents"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

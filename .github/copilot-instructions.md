@@ -20,18 +20,19 @@ This is a **curated Runtipi appstore** containing 26 self-hosted applications fr
 The repository uses three branches to maintain separation between upstream and custom apps:
 
 **Branch Structure:**
-- **`upstream` branch**: Automatically synced apps from official Runtipi appstore
-  - Only contains apps listed in `.runtipi-sync/config.json` allowlist
+- **`upstream` branch**: ALL apps from official Runtipi appstore
+  - Contains complete copy of official appstore (270+ apps)
   - Completely replaced on each sync (no custom modifications preserved here)
   - Updated weekly via GitHub Actions
   
 - **`custom` branch**: Manually maintained custom apps
-  - Contains all 25 custom apps listed in `customApps` array
+  - Contains all 26 custom apps listed in `customApps` array (including n8n)
   - Never touched by upstream sync automation
   - Updated manually when custom apps need changes
   
 - **`main` branch**: Production branch
-  - Merge of upstream + custom branches
+  - Merge of upstream + custom branches, filtered by allowlist
+  - Only allowlisted upstream apps + all custom apps
   - Validated with schema tests before merge
   - Updated via PR after upstream sync completes
 

@@ -1,0 +1,50 @@
+{
+  "services": [
+    {
+      "name": "dashdot",
+      "image": "mauricenino/dashdot:6.2.0",
+      "isMain": true,
+      "internalPort": 3001,
+      "environment": [
+        {
+          "key": "DASHDOT_SHOW_HOST",
+          "value": "false"
+        },
+        {
+          "key": "DASHDOT_SHOW_DASH_VERSION",
+          "value": "true"
+        },
+        {
+          "key": "DASHDOT_ENABLE_CPU_TEMPS",
+          "value": "true"
+        },
+        {
+          "key": "DASHDOT_USE_IMPERIAL",
+          "value": "true"
+        },
+        {
+          "key": "DASHDOT_ALWAYS_SHOW_PERCENTAGES",
+          "value": "true"
+        },
+        {
+          "key": "DASHDOT_PAGE_TITLE",
+          "value": "dashdot"
+        },
+        {
+          "key": "DASHDOT_ACCEPT_OOKLA_EULA",
+          "value": "true"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "/",
+          "containerPath": "/mnt/host",
+          "readOnly": true
+        }
+      ],
+      "privileged": true
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

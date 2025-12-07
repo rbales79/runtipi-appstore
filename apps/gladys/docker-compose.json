@@ -1,0 +1,51 @@
+{
+  "services": [
+    {
+      "name": "gladys",
+      "image": "gladysassistant/gladys:v4.65.1",
+      "isMain": true,
+      "networkMode": "host",
+      "environment": [
+        {
+          "key": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "key": "SERVER_PORT",
+          "value": "8270"
+        },
+        {
+          "key": "TZ",
+          "value": "${TZ}"
+        },
+        {
+          "key": "SQLITE_FILE_PATH",
+          "value": "/var/lib/gladysassistant/gladys-production.db"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "/var/run/docker.sock",
+          "containerPath": "/var/run/docker.sock"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/gladysassistant",
+          "containerPath": "/var/lib/gladysassistant"
+        },
+        {
+          "hostPath": "/dev",
+          "containerPath": "/dev"
+        },
+        {
+          "hostPath": "/run/udev",
+          "containerPath": "/run/udev",
+          "readOnly": true
+        }
+      ],
+      "privileged": true,
+      "stopGracePeriod": "1m"
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

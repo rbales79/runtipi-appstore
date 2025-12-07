@@ -1,0 +1,74 @@
+{
+  "services": [
+    {
+      "name": "guacamole",
+      "image": "guacamole/guacamole:1.6.0",
+      "isMain": true,
+      "internalPort": 8080,
+      "environment": [
+        {
+          "key": "TOTP_ENABLED",
+          "value": "${GUACAMOLE_TOTP_ENABLED}"
+        },
+        {
+          "key": "POSTGRESQL_DATABASE",
+          "value": "guacamole"
+        },
+        {
+          "key": "POSTGRESQL_USER",
+          "value": "guacamole"
+        },
+        {
+          "key": "POSTGRESQL_PASSWORD",
+          "value": "${GUACAMOLE_DB_PASSWORD}"
+        },
+        {
+          "key": "GUACD_HOSTNAME",
+          "value": "guacamole-guacd"
+        },
+        {
+          "key": "POSTGRESQL_HOSTNAME",
+          "value": "guacamole-db"
+        }
+      ]
+    },
+    {
+      "name": "guacamole-guacd",
+      "image": "guacamole/guacd:1.5.5"
+    },
+    {
+      "name": "guacamole-db",
+      "image": "postgres:14",
+      "environment": [
+        {
+          "key": "POSTGRES_DB",
+          "value": "guacamole"
+        },
+        {
+          "key": "POSTGRES_USER",
+          "value": "guacamole"
+        },
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "${GUACAMOLE_DB_PASSWORD}"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/db",
+          "containerPath": "/var/lib/postgresql/data"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/init/sql",
+          "containerPath": "/config/sql"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/init/init-guacamole.sh",
+          "containerPath": "/docker-entrypoint-initdb.d/init-guacamole.sh"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

@@ -1,0 +1,129 @@
+{
+  "services": [
+    {
+      "name": "sftpgo",
+      "image": "drakkan/sftpgo:v2.7.0-alpine",
+      "isMain": true,
+      "internalPort": "${SFTPGO_BINDING_PORT-8080}",
+      "addPorts": [
+        {
+          "hostPort": 2022,
+          "containerPort": 2022
+        }
+      ],
+      "user": "root",
+      "environment": [
+        {
+          "key": "SFTPGO_HTTPD__BINDINGS__0__PORT",
+          "value": "${SFTPGO_BINDING_PORT-8080}"
+        },
+        {
+          "key": "SFTPGO_GRACE_TIME",
+          "value": "${SFTPGO_GRACE_TIME-5}"
+        },
+        {
+          "key": "SFTPGO_MINIO_SHA256_SIMD",
+          "value": "1"
+        },
+        {
+          "key": "SFTPGO_DATA_PROVIDER__CREATE_DEFAULT_ADMIN",
+          "value": "${SFTPGO_CREATE_DEFAULT_ADMIN-1}"
+        },
+        {
+          "key": "SFTPGO_DEFAULT_ADMIN_USERNAME",
+          "value": "${SFTPGO_ADMIN_USERNAME}"
+        },
+        {
+          "key": "SFTPGO_DEFAULT_ADMIN_PASSWORD",
+          "value": "${SFTPGO_ADMIN_PASSWORD}"
+        },
+        {
+          "key": "SFTPGO_DATA_PROVIDER__DRIVER",
+          "value": "postgresql"
+        },
+        {
+          "key": "SFTPGO_DATA_PROVIDER__NAME",
+          "value": "sftpgo"
+        },
+        {
+          "key": "SFTPGO_DATA_PROVIDER__HOST",
+          "value": "sftpgo-db"
+        },
+        {
+          "key": "SFTPGO_DATA_PROVIDER__PORT",
+          "value": "5432"
+        },
+        {
+          "key": "SFTPGO_DATA_PROVIDER__USERNAME",
+          "value": "sftpgo"
+        },
+        {
+          "key": "SFTPGO_DATA_PROVIDER__PASSWORD",
+          "value": "${SFTPGO_DATABASE_PASSWORD-sftpgo}"
+        }
+      ],
+      "dependsOn": {
+        "sftpgo-db": {
+          "condition": "service_healthy"
+        }
+      },
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/config",
+          "containerPath": "/var/lib/sftpgo"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/files",
+          "containerPath": "/srv/sftpgo/data"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/backups",
+          "containerPath": "/srv/sftpgo/backups"
+        }
+      ],
+      "healthCheck": {
+        "interval": "30s",
+        "timeout": "5s",
+        "retries": 5,
+        "startPeriod": "30s",
+        "test": "wget --no-verbose --tries=1 --spider http://localhost:${SFTPGO_BINDING_PORT-8080}/healthz"
+      }
+    },
+    {
+      "name": "sftpgo-db",
+      "image": "postgres:17.2-alpine",
+      "environment": [
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "${SFTPGO_DATABASE_PASSWORD-sftpgo}"
+        },
+        {
+          "key": "POSTGRES_USER",
+          "value": "sftpgo"
+        },
+        {
+          "key": "POSTGRES_DB",
+          "value": "sftpgo"
+        },
+        {
+          "key": "PGUSER",
+          "value": "sftpgo"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/db",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ],
+      "healthCheck": {
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5,
+        "test": "pg_isready -d sftpgo"
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

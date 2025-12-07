@@ -1,0 +1,145 @@
+{
+  "services": [
+    {
+      "name": "invoice-ninja",
+      "image": "invoiceninja/invoiceninja:5.12.39",
+      "user": "1500:1500",
+      "environment": [
+        {
+          "key": "IN_USER_EMAIL",
+          "value": "${INVOICE_NINJA_USER_MAIL}"
+        },
+        {
+          "key": "IN_PASSWORD",
+          "value": "${INVOICE_NINJA_USER_PASSWORD}"
+        },
+        {
+          "key": "APP_URL",
+          "value": "${APP_PROTOCOL:-http}://${APP_DOMAIN}"
+        },
+        {
+          "key": "APP_NAME",
+          "value": "Invoice Ninja"
+        },
+        {
+          "key": "APP_ENV",
+          "value": "production"
+        },
+        {
+          "key": "APP_KEY",
+          "value": "${INVOICE_NINJA_APP_KEY}"
+        },
+        {
+          "key": "APP_CIPHER",
+          "value": "AES-256-CBC"
+        },
+        {
+          "key": "DB_HOST",
+          "value": "invoice-ninja-db"
+        },
+        {
+          "key": "DB_PORT",
+          "value": "3306"
+        },
+        {
+          "key": "DB_DATABASE",
+          "value": "ninja"
+        },
+        {
+          "key": "DB_USERNAME",
+          "value": "ninja"
+        },
+        {
+          "key": "DB_PASSWORD",
+          "value": "ninja"
+        },
+        {
+          "key": "REQUIRE_HTTPS",
+          "value": "false"
+        },
+        {
+          "key": "QUEUE_CONNECTION",
+          "value": "database"
+        },
+        {
+          "key": "IS_DOCKER",
+          "value": "TRUE"
+        }
+      ],
+      "dependsOn": ["invoice-ninja-db"],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/public",
+          "containerPath": "/var/www/app/public"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/storage",
+          "containerPath": "/var/www/app/storage"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/php/php.ini",
+          "containerPath": "/usr/local/etc/php/php.ini",
+          "readOnly": true
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/php/php-cli.ini",
+          "containerPath": "/usr/local/etc/php/php-cli.ini",
+          "readOnly": true
+        }
+      ]
+    },
+    {
+      "name": "invoice-ninja-web",
+      "image": "nginx:1.29",
+      "isMain": true,
+      "internalPort": 80,
+      "dependsOn": {
+        "invoice-ninja": {
+          "condition": "service_started"
+        }
+      },
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/nginx/invoice-ninja.conf",
+          "containerPath": "/etc/nginx/conf.d/default.conf",
+          "readOnly": true
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/public",
+          "containerPath": "/var/www/app/public",
+          "readOnly": true
+        }
+      ]
+    },
+    {
+      "name": "invoice-ninja-db",
+      "image": "mariadb:10.7",
+      "environment": [
+        {
+          "key": "MARIADB_ROOT_PASSWORD",
+          "value": "${INVOICE_NINJA_BDD_PASSWORD}"
+        },
+        {
+          "key": "MARIADB_USER",
+          "value": "ninja"
+        },
+        {
+          "key": "MARIADB_PASSWORD",
+          "value": "ninja"
+        },
+        {
+          "key": "MARIADB_DATABASE",
+          "value": "ninja"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/mysql",
+          "containerPath": "/var/lib/mysql"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

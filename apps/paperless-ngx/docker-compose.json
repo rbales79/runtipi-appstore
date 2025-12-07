@@ -1,0 +1,116 @@
+{
+  "services": [
+    {
+      "name": "paperless-ngx",
+      "image": "ghcr.io/paperless-ngx/paperless-ngx:2.20.1",
+      "isMain": true,
+      "internalPort": 8000,
+      "environment": [
+        {
+          "key": "PAPERLESS_REDIS",
+          "value": "redis://broker:6379"
+        },
+        {
+          "key": "PAPERLESS_DBHOST",
+          "value": "db"
+        },
+        {
+          "key": "PAPERLESS_ADMIN_USER",
+          "value": "${PAPERLESS_ADMIN_USERNAME}"
+        },
+        {
+          "key": "PAPERLESS_ADMIN_PASSWORD",
+          "value": "${PAPERLESS_ADMIN_PASSWORD}"
+        },
+        {
+          "key": "PAPERLESS_TIKA_ENABLED",
+          "value": "${PAPERLESS_TIKA_ENABLED}"
+        },
+        {
+          "key": "PAPERLESS_TIKA_GOTENBERG_ENDPOINT",
+          "value": "http://gotenberg:3000"
+        },
+        {
+          "key": "PAPERLESS_TIKA_ENDPOINT",
+          "value": "http://tika:9998"
+        },
+        {
+          "key": "PAPERLESS_URL",
+          "value": "${APP_PROTOCOL:-http}://${APP_DOMAIN}"
+        },
+        {
+          "key": "COMPOSE_PROJECT_NAME",
+          "value": "paperless-ngx"
+        },
+        {
+          "key": "PAPERLESS_CSRF_TRUSTED_ORIGINS",
+          "value": "https://${APP_ID}.${LOCAL_DOMAIN},https://${APP_DOMAIN},http://${INTERNAL_IP}:${APP_PORT}"
+        }
+      ],
+      "dependsOn": ["db", "broker"],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/paperless_data",
+          "containerPath": "/usr/src/paperless/data"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/paperless_media",
+          "containerPath": "/usr/src/paperless/media"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/paperless_export",
+          "containerPath": "/usr/src/paperless/export"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/paperless_consume",
+          "containerPath": "/usr/src/paperless/consume"
+        }
+      ]
+    },
+    {
+      "name": "broker",
+      "image": "redis:7",
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/redis",
+          "containerPath": "/data"
+        }
+      ]
+    },
+    {
+      "name": "db",
+      "image": "postgres:17",
+      "environment": [
+        {
+          "key": "POSTGRES_DB",
+          "value": "paperless"
+        },
+        {
+          "key": "POSTGRES_USER",
+          "value": "paperless"
+        },
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "paperless"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/postgres",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ]
+    },
+    {
+      "name": "gotenberg",
+      "image": "gotenberg/gotenberg:8.25",
+      "command": ["gotenberg", "--chromium-disable-javascript=true", "--chromium-allow-list=file:///tmp/.*"]
+    },
+    {
+      "name": "tika",
+      "image": "apache/tika:latest"
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}
