@@ -1,0 +1,33 @@
+{
+  "name": "Harbor",
+  "id": "harbor",
+  "version": "2.12.0",
+  "tipi_version": 1,
+  "port": 8888,
+  "available": true,
+  "supported_architectures": ["arm64", "amd64"],
+  "created_at": 1733615400000,
+  "updated_at": 1733615400000,
+  "exposable": true,
+  "dynamic_config": true,
+  "categories": ["development", "data"],
+  "short_desc": "Open source cloud native registry for storing and distributing container images and artifacts",
+  "description": "Harbor is an open source registry that secures artifacts with policies and role-based access control, ensures images are scanned and free from vulnerabilities, and signs images as trusted.",
+  "author": "goharbor",
+  "source": "https://github.com/goharbor/harbor",
+  "form_fields": [
+    {
+      "type": "text",
+      "label": "Harbor Admin Password",
+      "hint": "Password for the Harbor admin user",
+      "required": true,
+      "env_variable": "HARBOR_ADMIN_PASSWORD"
+    },
+    {
+      "type": "random",
+      "label": "Database Password",
+      "env_variable": "POSTGRES_PASSWORD"
+    }
+  ],
+  "$schema": "https://schemas.runtipi.io/app-info.json"
+}

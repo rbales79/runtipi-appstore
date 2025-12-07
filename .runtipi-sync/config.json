@@ -24,6 +24,7 @@
     "glpi",
     "gluetun",
     "habittrove",
+    "harbor",
     "immich-kiosk",
     "infisical",
     "ironmount",
@@ -42,6 +43,7 @@
     "step-ca",
     "termix",
     "tinyauth-analytics",
+    "vault",
     "zerobyte"
   ],
   "versionComparisonRules": {
