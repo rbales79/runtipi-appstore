@@ -6,17 +6,8 @@
       "image": "hashicorp/vault:1.18.3",
       "container_name": "vault",
       "cap_add": ["IPC_LOCK"],
-      "command": "server",
       "isMain": true,
       "environment": [
-        {
-          "key": "VAULT_DEV_ROOT_TOKEN_ID",
-          "value": "${VAULT_DEV_ROOT_TOKEN_ID}"
-        },
-        {
-          "key": "VAULT_DEV_LISTEN_ADDRESS",
-          "value": "0.0.0.0:8200"
-        },
         {
           "key": "VAULT_ADDR",
           "value": "http://0.0.0.0:8200"
@@ -35,8 +26,8 @@
         },
         {
           "type": "bind",
-          "hostPath": "${APP_DATA_DIR}/config",
-          "containerPath": "/vault/config"
+          "hostPath": "${APP_DATA_DIR}/config.hcl",
+          "containerPath": "/vault/config/config.hcl"
         }
       ],
       "ports": [
