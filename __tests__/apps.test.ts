@@ -5,11 +5,12 @@ import fs from "node:fs";
 import path from "node:path";
 
 const ignoreFiles = ["docker-compose.common.yml"];
+const ignoreDirs = ["__tests__"];
 
 const getApps = async () => {
   const appsDir = (
     await fs.promises.readdir(path.join(process.cwd(), "apps"))
-  ).filter((app) => !ignoreFiles.includes(app));
+  ).filter((app) => !ignoreFiles.includes(app) && !ignoreDirs.includes(app));
   return appsDir;
 };
 
