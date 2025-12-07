@@ -153,6 +153,10 @@ jobs:
       - name: Check for changes
         id: check_changes
         run: |
+          # Reset any workflow file changes (GitHub Actions can't push workflow changes)
+          git restore --staged .github/workflows/ 2>/dev/null || true
+          git checkout -- .github/workflows/ 2>/dev/null || true
+          
           git diff main..${{ steps.merge.outputs.merge_branch }} --quiet || echo "has_changes=true" >> $GITHUB_OUTPUT
 
       - name: Push merge branch
