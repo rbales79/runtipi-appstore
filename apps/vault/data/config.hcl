@@ -1,5 +1,8 @@
 ui = true
 
+default_lease_ttl = "168h"
+max_lease_ttl = "720h"
+
 storage "file" {
   path = "/vault/file"
 }

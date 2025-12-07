@@ -2,7 +2,7 @@
   "name": "Vault",
   "id": "vault",
   "version": "1.18.3",
-  "tipi_version": 2,
+  "tipi_version": 3,
   "port": 8200,
   "available": true,
   "supported_architectures": [
@@ -10,7 +10,7 @@
     "amd64"
   ],
   "created_at": 1733615400000,
-  "updated_at": 1765151572535,
+  "updated_at": 1765151946032,
   "exposable": true,
   "dynamic_config": true,
   "categories": [
