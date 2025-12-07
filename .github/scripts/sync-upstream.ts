@@ -281,6 +281,7 @@ class UpstreamSync {
 
   async sync(): Promise<typeof this.changes> {
     console.log("🚀 Starting upstream sync (branch-based workflow)...\n");
+    console.log("📝 Strategy: Sync ALL apps from upstream to upstream branch\n");
 
     // Ensure we're on the upstream branch
     try {
@@ -294,11 +295,10 @@ class UpstreamSync {
     // Clone upstream
     await this.cloneUpstream();
 
-    // Get upstream apps that match our sync criteria
+    // Get ALL upstream apps (no filtering here)
     const upstreamApps = await this.getUpstreamApps();
-    const appsToSync = upstreamApps.filter(app => this.shouldSyncApp(app, true));
 
-    console.log(`\n📊 Found ${upstreamApps.length} upstream apps, syncing ${appsToSync.length} apps\n`);
+    console.log(`\n📊 Found ${upstreamApps.length} upstream apps, syncing ALL to upstream branch\n`);
 
     // Remove all existing apps in the apps directory (except common files)
     const existingApps = await this.getLocalApps();
@@ -308,9 +308,14 @@ class UpstreamSync {
       console.log(`  🧹 Removed old: ${appName}`);
     }
 
-    // Sync each app from upstream
-    for (const appName of appsToSync.sort()) {
-      await this.syncApp(appName);
+    // Copy ALL apps from upstream
+    for (const appName of upstreamApps.sort()) {
+      const upstreamAppPath = join(UPSTREAM_DIR, "apps", appName);
+      const localAppPath = join(APPS_DIR, appName);
+      
+      await cp(upstreamAppPath, localAppPath, { recursive: true });
+      this.changes.added.push(appName);
+      console.log(`  ➕ Added: ${appName}`);
     }
 
     // Cleanup temp directory

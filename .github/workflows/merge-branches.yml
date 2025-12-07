@@ -57,10 +57,10 @@ jobs:
           git checkout -b "$MERGE_BRANCH"
           echo "merge_branch=$MERGE_BRANCH" >> $GITHUB_OUTPUT
           
-          # Merge upstream branch (only upstream synced apps)
-          echo "📥 Merging upstream branch..."
+          # Merge upstream branch (ALL upstream apps)
+          echo "📥 Merging upstream branch (all apps)..."
           if git show-ref --verify --quiet refs/heads/upstream; then
-            git merge upstream --no-edit -X theirs || {
+            git merge upstream --no-edit --allow-unrelated-histories -X theirs || {
               echo "⚠️  Merge conflict with upstream branch"
               git merge --abort
               exit 1
@@ -69,10 +69,10 @@ jobs:
             echo "⚠️  upstream branch not found, skipping"
           fi
           
-          # Merge custom branch (only custom apps)
+          # Merge custom branch (custom apps only)
           echo "📥 Merging custom branch..."
           if git show-ref --verify --quiet refs/heads/custom; then
-            git merge custom --no-edit -X ours || {
+            git merge custom --no-edit --allow-unrelated-histories -X ours || {
               echo "⚠️  Merge conflict with custom branch"
               git merge --abort
               exit 1
@@ -82,6 +82,14 @@ jobs:
           fi
           
           echo "✅ Branches merged successfully"
+          
+          # Filter apps based on allowlist/blocklist
+          echo "🔍 Filtering apps..."
+          bun .github/scripts/filter-apps.ts
+          
+          # Commit filtered result
+          git add apps/
+          git commit -m "chore: filter apps based on allowlist" || echo "No changes to commit"
 
       - name: Run tests
         id: test
