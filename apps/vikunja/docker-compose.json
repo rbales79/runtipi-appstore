@@ -1,0 +1,83 @@
+{
+  "services": [
+    {
+      "name": "vikunja",
+      "image": "vikunja/vikunja:0.24.6",
+      "isMain": true,
+      "internalPort": 3456,
+      "environment": [
+        {
+          "key": "VIKUNJA_DATABASE_HOST",
+          "value": "vikunja-db"
+        },
+        {
+          "key": "VIKUNJA_DATABASE_PASSWORD",
+          "value": "${VIKUNJA_DB_PASSWORD}"
+        },
+        {
+          "key": "VIKUNJA_DATABASE_TYPE",
+          "value": "postgres"
+        },
+        {
+          "key": "VIKUNJA_DATABASE_USER",
+          "value": "tipi"
+        },
+        {
+          "key": "VIKUNJA_DATABASE_DATABASE",
+          "value": "vikunja"
+        },
+        {
+          "key": "VIKUNJA_SERVICE_JWTSECRET",
+          "value": "${VIKUNJA_SERVICE_SECRET}"
+        },
+        {
+          "key": "VIKUNJA_SERVICE_PUBLICURL",
+          "value": "${APP_PROTOCOL:-http}://${APP_DOMAIN}/"
+        }
+      ],
+      "dependsOn": {
+        "vikunja-db": {
+          "condition": "service_healthy"
+        }
+      },
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/files",
+          "containerPath": "/app/vikunja/files"
+        }
+      ]
+    },
+    {
+      "name": "vikunja-db",
+      "image": "postgres:14",
+      "environment": [
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "${VIKUNJA_DB_PASSWORD}"
+        },
+        {
+          "key": "POSTGRES_USER",
+          "value": "tipi"
+        },
+        {
+          "key": "POSTGRES_DB",
+          "value": "vikunja"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/db",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ],
+      "healthCheck": {
+        "interval": "5s",
+        "timeout": "5s",
+        "retries": 5,
+        "test": "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

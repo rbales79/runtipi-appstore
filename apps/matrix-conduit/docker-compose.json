@@ -1,0 +1,129 @@
+{
+  "services": [
+    {
+      "name": "matrix-conduit",
+      "image": "matrixconduit/matrix-conduit:v0.10.9",
+      "isMain": true,
+      "environment": [
+        {
+          "key": "CONDUIT_SERVER_NAME",
+          "value": "${APP_DOMAIN}"
+        },
+        {
+          "key": "CONDUIT_DATABASE_PATH",
+          "value": "/var/lib/matrix-conduit/"
+        },
+        {
+          "key": "CONDUIT_DATABASE_BACKEND",
+          "value": "rocksdb"
+        },
+        {
+          "key": "CONDUIT_ADDRESS",
+          "value": "0.0.0.0"
+        },
+        {
+          "key": "CONDUIT_PORT",
+          "value": "6167"
+        },
+        {
+          "key": "CONDUIT_LOG",
+          "value": "${LOG:-warn,rocket=off,_=off,sled=off}"
+        },
+        {
+          "key": "CONDUIT_MAX_REQUEST_SIZE",
+          "value": "${MAX_REQUEST_SIZE:-20000000}"
+        },
+        {
+          "key": "CONDUIT_ALLOW_REGISTRATION",
+          "value": "${ALLOW_REGISTRATION:-false}"
+        },
+        {
+          "key": "CONDUIT_ALLOW_FEDERATION",
+          "value": "${ALLOW_FEDERATION:-false}"
+        },
+        {
+          "key": "CONDUIT_TRUSTED_SERVERS",
+          "value": "${TRUSTED_SERVERS:-[]}"
+        },
+        {
+          "key": "CONDUIT_ALLOW_CHECK_FOR_UPDATES",
+          "value": "false"
+        },
+        {
+          "key": "CONDUIT_TURN_URIS",
+          "value": "${TURN_URIS:-[\"turn:localhost?transport=udp\", \"turn:localhost?transport=tcp\"]}"
+        },
+        {
+          "key": "CONDUIT_TURN_SECRET",
+          "value": "${TURN_SECRET:-turnsecret}"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data",
+          "containerPath": "/var/lib/matrix-conduit/"
+        }
+      ],
+      "extraLabels": {
+        "traefik.enable": "true",
+        "traefik.http.middlewares.{{RUNTIPI_APP_ID}}-conduit-web-redirect.redirectscheme.scheme": "https",
+        "traefik.http.services.{{RUNTIPI_APP_ID}}-conduit.loadbalancer.server.port": "6167",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit-insecure.rule": "Host(`${APP_DOMAIN}`)",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit-insecure.entrypoints": "web",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit-insecure.service": "{{RUNTIPI_APP_ID}}-conduit",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit-insecure.middlewares": "{{RUNTIPI_APP_ID}}-conduit-web-redirect",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit.rule": "Host(`${APP_DOMAIN}`)",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit.entrypoints": "websecure",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit.service": "{{RUNTIPI_APP_ID}}-conduit",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit.tls.certresolver": "myresolver",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit-local-insecure.rule": "Host(`{{RUNTIPI_APP_ID}}-conduit.${LOCAL_DOMAIN}`)",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit-local-insecure.entrypoints": "web",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit-local-insecure.service": "{{RUNTIPI_APP_ID}}-conduit",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit-local-insecure.middlewares": "{{RUNTIPI_APP_ID}}-conduit-web-redirect",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit-local.rule": "Host(`{{RUNTIPI_APP_ID}}-conduit.${LOCAL_DOMAIN}`)",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit-local.entrypoints": "websecure",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit-local.service": "{{RUNTIPI_APP_ID}}-conduit",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-conduit-local.tls": "true"
+      }
+    },
+    {
+      "name": "matrix-conduit-well-known",
+      "image": "nginx",
+      "environment": [
+        {
+          "key": "APP_DOMAIN",
+          "value": "${APP_DOMAIN}"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "./nginx",
+          "containerPath": "/etc/nginx/templates"
+        }
+      ],
+      "extraLabels": {
+        "traefik.enable": "true",
+        "traefik.http.middlewares.{{RUNTIPI_APP_ID}}-well-knows-web-redirect.redirectscheme.scheme": "https",
+        "traefik.http.services.{{RUNTIPI_APP_ID}}-well-knows.loadbalancer.server.port": "80",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows-insecure.rule": "Host(`${APP_DOMAIN}`) && PathPrefix(`/.well-known/{{RUNTIPI_APP_ID}}`)",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows-insecure.entrypoints": "web",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows-insecure.service": "{{RUNTIPI_APP_ID}}-well-knows",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows-insecure.middlewares": "{{RUNTIPI_APP_ID}}-well-knows-web-redirect",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows.rule": "Host(`${APP_DOMAIN}`) && PathPrefix(`/.well-known/{{RUNTIPI_APP_ID}}`)",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows.entrypoints": "websecure",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows.service": "{{RUNTIPI_APP_ID}}-well-knows",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows.tls.certresolver": "myresolver",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows-local-insecure.rule": "Host(`{{RUNTIPI_APP_ID}}-well-knows.${LOCAL_DOMAIN}`) && PathPrefix(`/.well-known/{{RUNTIPI_APP_ID}}`)",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows-local-insecure.entrypoints": "web",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows-local-insecure.service": "{{RUNTIPI_APP_ID}}-well-knows",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows-local-insecure.middlewares": "{{RUNTIPI_APP_ID}}-well-knows-web-redirect",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows-local.rule": "Host(`{{RUNTIPI_APP_ID}}-well-knows.${LOCAL_DOMAIN}`) && PathPrefix(`/.well-known/{{RUNTIPI_APP_ID}}`)",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows-local.entrypoints": "websecure",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows-local.service": "{{RUNTIPI_APP_ID}}-well-knows",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-well-knows-local.tls": "true"
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

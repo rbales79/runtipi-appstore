@@ -1,0 +1,18 @@
+{
+  "services": [
+    {
+      "name": "whoogle",
+      "image": "benbusby/whoogle-search:1.1.2",
+      "isMain": true,
+      "internalPort": 8255,
+      "environment": [
+        {
+          "key": "EXPOSE_PORT",
+          "value": 8255
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

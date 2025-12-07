@@ -1,0 +1,75 @@
+{
+  "services": [
+    {
+      "name": "joplin",
+      "image": "joplin/server:3.5.1",
+      "isMain": true,
+      "internalPort": 22300,
+      "environment": [
+        {
+          "key": "APP_PORT",
+          "value": "22300"
+        },
+        {
+          "key": "APP_BASE_URL",
+          "value": "${APP_PROTOCOL:-http}://${APP_DOMAIN}/"
+        },
+        {
+          "key": "DB_CLIENT",
+          "value": "pg"
+        },
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "${JOPLIN_DB_PASSWORD}"
+        },
+        {
+          "key": "POSTGRES_USER",
+          "value": "tipi"
+        },
+        {
+          "key": "POSTGRES_DATABASE",
+          "value": "joplin"
+        },
+        {
+          "key": "POSTGRES_PORT",
+          "value": "5432"
+        },
+        {
+          "key": "POSTGRES_HOST",
+          "value": "db-joplin"
+        },
+        {
+          "key": "MAX_TIME_DRIFT",
+          "value": "0"
+        }
+      ],
+      "dependsOn": ["db-joplin"]
+    },
+    {
+      "name": "db-joplin",
+      "image": "postgres:14.2",
+      "environment": [
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "${JOPLIN_DB_PASSWORD}"
+        },
+        {
+          "key": "POSTGRES_USER",
+          "value": "tipi"
+        },
+        {
+          "key": "POSTGRES_DB",
+          "value": "joplin"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/postgres",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

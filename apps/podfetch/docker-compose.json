@@ -1,0 +1,52 @@
+{
+  "services": [
+    {
+      "name": "podfetch",
+      "image": "samuel19982/podfetch:latest",
+      "isMain": true,
+      "internalPort": 8000,
+      "environment": [
+        {
+          "key": "BASIC_AUTH",
+          "value": "true"
+        },
+        {
+          "key": "USERNAME",
+          "value": "${PODFETCH_USERNAME}"
+        },
+        {
+          "key": "PASSWORD",
+          "value": "${PODFETCH_PASSWORD}"
+        },
+        {
+          "key": "POLLING_INTERVAL",
+          "value": "60"
+        },
+        {
+          "key": "SERVER_URL",
+          "value": "${APP_PROTOCOL:-http}://${APP_DOMAIN}"
+        },
+        {
+          "key": "PODINDEX_API_KEY",
+          "value": "${PODFETCH_PODINDEX_API_KEY}"
+        },
+        {
+          "key": "PODINDEX_API_SECRET",
+          "value": "${PODFETCH_PODINDEX_API_SECRET}"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/podfetch-db",
+          "containerPath": "/app/db"
+        },
+        {
+          "hostPath": "${ROOT_FOLDER_HOST}/media/data/podcasts",
+          "containerPath": "/app/podcasts"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

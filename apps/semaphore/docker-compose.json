@@ -1,0 +1,100 @@
+{
+  "services": [
+    {
+      "name": "semaphore",
+      "image": "semaphoreui/semaphore:v2.16.45",
+      "isMain": true,
+      "internalPort": 3000,
+      "environment": [
+        {
+          "key": "SEMAPHORE_DB_USER",
+          "value": "semaphore"
+        },
+        {
+          "key": "SEMAPHORE_DB_PASS",
+          "value": "${SEMAPHORE_DB_PASSWORD}"
+        },
+        {
+          "key": "SEMAPHORE_DB_HOST",
+          "value": "semaphore-db"
+        },
+        {
+          "key": "SEMAPHORE_DB_PORT",
+          "value": "5432"
+        },
+        {
+          "key": "SEMAPHORE_DB_DIALECT",
+          "value": "postgres"
+        },
+        {
+          "key": "SEMAPHORE_DB",
+          "value": "semaphore"
+        },
+        {
+          "key": "SEMAPHORE_PLAYBOOK_PATH",
+          "value": "/tmp/semaphore"
+        },
+        {
+          "key": "SEMAPHORE_ADMIN_PASSWORD",
+          "value": "${SEMAPHORE_ADMIN_PASSWORD}"
+        },
+        {
+          "key": "SEMAPHORE_ADMIN_NAME",
+          "value": "${SEMAPHORE_ADMIN_NAME}"
+        },
+        {
+          "key": "SEMAPHORE_ADMIN_EMAIL",
+          "value": "${SEMAPHORE_ADMIN_EMAIL}"
+        },
+        {
+          "key": "SEMAPHORE_ADMIN",
+          "value": "${SEMAPHORE_ADMIN_NAME}"
+        },
+        {
+          "key": "SEMAPHORE_ACCESS_KEY_ENCRYPTION",
+          "value": "${SEMAPHORE_ACCESS_KEY_ENCRYPTION}"
+        },
+        {
+          "key": "SEMAPHORE_LDAP_ACTIVATED",
+          "value": "no"
+        },
+        {
+          "key": "TZ",
+          "value": "${TZ}"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/repositories",
+          "containerPath": "/repositories"
+        }
+      ]
+    },
+    {
+      "name": "semaphore-db",
+      "image": "postgres:14",
+      "environment": [
+        {
+          "key": "POSTGRES_USER",
+          "value": "semaphore"
+        },
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "${SEMAPHORE_DB_PASSWORD}"
+        },
+        {
+          "key": "POSTGRES_DB",
+          "value": "semaphore"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/db",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

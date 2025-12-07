@@ -1,0 +1,101 @@
+{
+  "services": [
+    {
+      "image": "crowdsecurity/crowdsec:v1.7.3",
+      "name": "crowdsec",
+      "volumes": [
+        {
+          "hostPath": "/etc/localtime",
+          "containerPath": "/etc/localtime",
+          "readOnly": true
+        },
+        {
+          "hostPath": "/var/run/docker.sock",
+          "containerPath": "/var/run/docker.sock",
+          "readOnly": true
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/crowdsec/acquis.yaml",
+          "containerPath": "/etc/crowdsec/acquis.yaml"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/crowdsec",
+          "containerPath": "/etc/crowdsec"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/crowdsec/db",
+          "containerPath": "/var/lib/crowdsec/data"
+        },
+        {
+          "hostPath": "/var/log/auth.log",
+          "containerPath": "/var/log/auth.log",
+          "readOnly": true
+        },
+        {
+          "hostPath": "/var/log/traefik",
+          "containerPath": "/var/log/traefik",
+          "readOnly": true
+        },
+        {
+          "hostPath": "/var/log/crowdsec",
+          "containerPath": "/var/log/crowdsec",
+          "readOnly": true
+        }
+      ],
+      "environment": [
+        {
+          "key": "COLLECTIONS",
+          "value": "crowdsecurity/linux crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/sshd"
+        },
+        {
+          "key": "GID",
+          "value": "${GID-1000}"
+        }
+      ]
+    },
+    {
+      "image": "fbonalair/traefik-crowdsec-bouncer:latest",
+      "name": "crowdsec-bouncer-traefik",
+      "environment": [
+        {
+          "key": "CROWDSEC_BOUNCER_API_KEY",
+          "value": "${CROWDSEC_BOUNCER_API_KEY}"
+        },
+        {
+          "key": "CROWDSEC_AGENT_HOST",
+          "value": "crowdsec:8080"
+        }
+      ],
+      "dependsOn": ["crowdsec"]
+    },
+    {
+      "image": "metabase/metabase",
+      "name": "crowdsec-dashboard",
+      "internalPort": 3000,
+      "isMain": true,
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/crowdsec-dashboard/data",
+          "containerPath": "/data"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/crowdsec/db",
+          "containerPath": "/metabase-data"
+        }
+      ],
+      "environment": [
+        {
+          "key": "MB_DB_FILE",
+          "value": "/data/metabase.db"
+        },
+        {
+          "key": "MGID",
+          "value": "${GID-1000}"
+        }
+      ],
+      "dependsOn": ["crowdsec"]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

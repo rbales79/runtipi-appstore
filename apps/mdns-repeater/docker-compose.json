@@ -1,0 +1,22 @@
+{
+  "services": [
+    {
+      "name": "mdns-repeater",
+      "image": "angelnu/mdns_repeater:latest",
+      "isMain": true,
+      "networkMode": "host",
+      "environment": [
+        {
+          "key": "hostNIC",
+          "value": "${MDNS_HOST_NIC}"
+        },
+        {
+          "key": "dockerNIC",
+          "value": "${MDNS_DOCKER_NIC}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

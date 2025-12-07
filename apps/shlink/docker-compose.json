@@ -1,0 +1,67 @@
+{
+  "services": [
+    {
+      "name": "shlink",
+      "image": "ghcr.io/shlinkio/shlink:4.6.0",
+      "isMain": true,
+      "internalPort": 8080,
+      "environment": [
+        {
+          "key": "DEFAULT_DOMAIN",
+          "value": "${APP_DOMAIN}"
+        },
+        {
+          "key": "IS_HTTPS_ENABLED",
+          "value": "true"
+        },
+        {
+          "key": "DB_DRIVER",
+          "value": "postgres"
+        },
+        {
+          "key": "DB_HOST",
+          "value": "shlink-db"
+        },
+        {
+          "key": "DB_NAME",
+          "value": "shlink"
+        },
+        {
+          "key": "DB_USER",
+          "value": "shlink"
+        },
+        {
+          "key": "DB_PASSWORD",
+          "value": "${SHLINK_POSTGRES_PASSWORD}"
+        }
+      ],
+      "dependsOn": ["shlink-db"]
+    },
+    {
+      "name": "shlink-db",
+      "image": "postgres:17.2-alpine",
+      "environment": [
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "${SHLINK_POSTGRES_PASSWORD}"
+        },
+        {
+          "key": "POSTGRES_USER",
+          "value": "shlink"
+        },
+        {
+          "key": "POSTGRES_DB",
+          "value": "shlink"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/db",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

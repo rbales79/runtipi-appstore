@@ -1,0 +1,52 @@
+{
+  "services": [
+    {
+      "name": "fireshare",
+      "image": "shaneisrael/fireshare:v1.3.2",
+      "isMain": true,
+      "internalPort": 80,
+      "environment": [
+        {
+          "key": "ADMIN_USERNAME",
+          "value": "${FIRESHARE_USERNAME}"
+        },
+        {
+          "key": "ADMIN_PASSWORD",
+          "value": "${FIRESHARE_PASSWORD}"
+        },
+        {
+          "key": "SECRET_KEY",
+          "value": "${FIRESHARE_SECRET_KEY}"
+        },
+        {
+          "key": "MINUTES_BETWEEN_VIDEO_SCANS",
+          "value": "5"
+        },
+        {
+          "key": "PUID",
+          "value": "1000"
+        },
+        {
+          "key": "PGID",
+          "value": "1000"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/fireshare_data",
+          "containerPath": "/data"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/fireshare_processed",
+          "containerPath": "/processed"
+        },
+        {
+          "hostPath": "${ROOT_FOLDER_HOST}/media/data/videos/fireshare_videos",
+          "containerPath": "/videos"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json",
+  "services": [
+    {
+      "name": "navidrome",
+      "image": "deluan/navidrome:0.59.0",
+      "isMain": true,
+      "internalPort": 4533,
+      "environment": [
+        { "key": "ND_SCANSCHEDULE", "value": "1h" },
+        { "key": "ND_LOGLEVEL", "value": "info" },
+        { "key": "ND_SESSIONTIMEOUT", "value": "24h" }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/navidrome/data",
+          "containerPath": "/data"
+        },
+        {
+          "hostPath": "${ROOT_FOLDER_HOST}/media/data/music",
+          "containerPath": "/music",
+          "readOnly": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json",
+  "schemaVersion": 2,
+  "services": [
+    {
+      "name": "tailscale",
+      "image": "tailscale/tailscale:v1.90.9",
+      "isMain": true,
+      "environment": [
+        { "key": "TS_SERVE_CONFIG", "value": "${TAILSCALE_SERVE_CONFIG}" },
+        { "key": "TS_ACCEPT_DNS", "value": "${TAILSCALE_ACCEPT_DNS-false}" },
+        { "key": "TS_AUTH_ONCE", "value": "${TAILSCALE_AUTH_ONCE-false}" },
+        { "key": "TS_AUTHKEY", "value": "${TAILSCALE_AUTHKEY}" },
+        { "key": "TS_HOSTNAME", "value": "${TAILSCALE_HOSTNAME-runtipi}" },
+        { "key": "TS_ROUTES", "value": "${TAILSCALE_ROUTES}" },
+        { "key": "TS_EXTRA_ARGS", "value": "${TAILSCALE_EXTRA_ARGS}" },
+        { "key": "TS_USERSPACE", "value": "${TAILSCALE_USERSPACE-true}" },
+        { "key": "TS_STATE_DIR", "value": "/var/lib/tailscale" }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/state",
+          "containerPath": "/var/lib/tailscale"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/config",
+          "containerPath": "/config"
+        },
+        {
+          "hostPath": "/dev/net/tun",
+          "containerPath": "/dev/net/tun"
+        }
+      ],
+      "capAdd": ["net_admin", "sys_module"]
+    }
+  ]
+}

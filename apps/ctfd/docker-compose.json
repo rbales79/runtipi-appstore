@@ -1,0 +1,100 @@
+{
+  "services": [
+    {
+      "name": "ctfd",
+      "image": "ctfd/ctfd:3.8.1",
+      "isMain": true,
+      "internalPort": 8000,
+      "environment": [
+        {
+          "key": "UPLOAD_FOLDER",
+          "value": "/var/uploads"
+        },
+        {
+          "key": "DATABASE_URL",
+          "value": "mysql+pymysql://tipi:${CTFD_MYSQL_DB_PASSWORD}@ctfd-db/ctfd"
+        },
+        {
+          "key": "REDIS_URL",
+          "value": "redis://ctfd-redis:6379"
+        },
+        {
+          "key": "WORKERS",
+          "value": "1"
+        },
+        {
+          "key": "LOG_FOLDER",
+          "value": "/var/log/CTFd"
+        },
+        {
+          "key": "ACCESS_LOG",
+          "value": "-"
+        },
+        {
+          "key": "ERROR_LOG",
+          "value": "-"
+        },
+        {
+          "key": "REVERSE_PROXY",
+          "value": "true"
+        },
+        {
+          "key": "SECRET_KEY",
+          "value": "${CTFD_SECRET_KEY}"
+        }
+      ],
+      "dependsOn": ["ctfd-db"],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/uploads",
+          "containerPath": "/var/log/CTFd"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/uploads",
+          "containerPath": "/var/uploads"
+        }
+      ]
+    },
+    {
+      "name": "ctfd-db",
+      "image": "mariadb:10.4.12",
+      "environment": [
+        {
+          "key": "MYSQL_ROOT_PASSWORD",
+          "value": "${CTFD_MYSQL_ROOT_PASSWORD}"
+        },
+        {
+          "key": "MYSQL_USER",
+          "value": "tipi"
+        },
+        {
+          "key": "MYSQL_PASSWORD",
+          "value": "${CTFD_MYSQL_DB_PASSWORD}"
+        },
+        {
+          "key": "MYSQL_DATABASE",
+          "value": "ctfd"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/db",
+          "containerPath": "/var/lib/mysql"
+        }
+      ],
+      "command": ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--wait_timeout=28800", "--log-warnings=0"]
+    },
+    {
+      "name": "ctfd-redis",
+      "image": "redis:4",
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/redis",
+          "containerPath": "/data"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

@@ -1,0 +1,46 @@
+{
+  "services": [
+    {
+      "name": "filestash",
+      "image": "machines/filestash:latest",
+      "isMain": true,
+      "internalPort": 8334,
+      "environment": [
+        {
+          "key": "APPLICATION_URL",
+          "value": "${APP_DOMAIN}"
+        },
+        {
+          "key": "GDRIVE_CLIENT_ID",
+          "value": "${FILESTASH_GDRIVE_CLIENT_ID}"
+        },
+        {
+          "key": "GDRIVE_CLIENT_SECRET",
+          "value": "${FILESTASH_GDRIVE_CLIENT_SECRET}"
+        },
+        {
+          "key": "DROPBOX_CLIENT_ID",
+          "value": "${FILESTASH_DROPBOX_CLIENT_ID}"
+        },
+        {
+          "key": "ONLYOFFICE_URL",
+          "value": "http://filestash-onlyoffice"
+        }
+      ],
+      "dependsOn": ["filestash-onlyoffice"],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data",
+          "containerPath": "/app/data/state/"
+        }
+      ]
+    },
+    {
+      "name": "filestash-onlyoffice",
+      "image": "onlyoffice/documentserver:9.2.0.1",
+      "securityOpt": ["seccomp:unconfined"]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}
