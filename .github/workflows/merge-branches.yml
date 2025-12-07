@@ -60,28 +60,28 @@ jobs:
           git checkout -b "$MERGE_BRANCH"
           echo "merge_branch=$MERGE_BRANCH" >> $GITHUB_OUTPUT
           
-          # Merge upstream branch (ALL upstream apps)
-          echo "📥 Merging upstream branch (all apps)..."
-          if git show-ref --verify --quiet refs/heads/upstream; then
-            git merge upstream --no-edit --allow-unrelated-histories -X theirs || {
-              echo "⚠️  Merge conflict with upstream branch"
-              git merge --abort
-              exit 1
-            }
-          else
-            echo "⚠️  upstream branch not found, skipping"
-          fi
-          
-          # Merge custom branch (custom apps only)
-          echo "📥 Merging custom branch..."
+          # Merge custom branch FIRST (custom apps take precedence)
+          echo "🔧 Merging custom branch..."
           if git show-ref --verify --quiet refs/heads/custom; then
-            git merge custom --no-edit --allow-unrelated-histories -X ours || {
+            git merge custom --no-edit --allow-unrelated-histories -X theirs || {
               echo "⚠️  Merge conflict with custom branch"
               git merge --abort
               exit 1
             }
           else
             echo "⚠️  custom branch not found, skipping"
+          fi
+          
+          # Merge upstream branch (ALL upstream apps)
+          echo "📥 Merging upstream branch (all apps)..."
+          if git show-ref --verify --quiet refs/heads/upstream; then
+            git merge upstream --no-edit --allow-unrelated-histories -X ours || {
+              echo "⚠️  Merge conflict with upstream branch"
+              git merge --abort
+              exit 1
+            }
+          else
+            echo "⚠️  upstream branch not found, skipping"
           fi
           
           echo "✅ Branches merged successfully"
