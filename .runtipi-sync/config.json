@@ -10,11 +10,11 @@
     "custom": "custom",
     "main": "main"
   },
-  "syncMode": "allowlist",
-  "allowlist": [
-    "n8n"
+  "syncMode": "blocklist",
+  "allowlist": [],
+  "blocklist": [
+    "n8n-1"
   ],
-  "blocklist": [],
   "preserveCustomApps": true,
   "customApps": [
     "coder",
