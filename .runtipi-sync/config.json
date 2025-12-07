@@ -1,0 +1,57 @@
+{
+  "$schema": "./schema.json",
+  "upstream": {
+    "url": "https://github.com/runtipi/runtipi-appstore.git",
+    "branch": "master"
+  },
+  "strategy": "branch-based",
+  "branches": {
+    "upstream": "upstream",
+    "custom": "custom",
+    "main": "main"
+  },
+  "syncMode": "allowlist",
+  "allowlist": [
+    "n8n"
+  ],
+  "blocklist": [],
+  "preserveCustomApps": true,
+  "customApps": [
+    "coder",
+    "dockflare",
+    "docuseal",
+    "gitea-runner",
+    "glpi",
+    "gluetun",
+    "habittrove",
+    "immich-kiosk",
+    "infisical",
+    "ironmount",
+    "kan",
+    "lldap",
+    "meshcentral",
+    "microbin",
+    "miniflux",
+    "newt",
+    "ocis",
+    "openfsd",
+    "pocket-id",
+    "prometheus",
+    "scrutiny",
+    "step-ca",
+    "termix",
+    "tinyauth-analytics",
+    "zerobyte"
+  ],
+  "versionComparisonRules": {
+    "keepIfNewerAppVersion": true,
+    "requireComparableTipiVersion": true,
+    "tipiVersionMaxGap": 20
+  },
+  "automation": {
+    "schedule": "0 2 * * 1",
+    "createPullRequest": true,
+    "autoMerge": false,
+    "notifyOnConflicts": true
+  }
+}

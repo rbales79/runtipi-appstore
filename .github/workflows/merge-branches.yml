@@ -1,0 +1,197 @@
+name: Merge Branches to Main
+
+on:
+  # Trigger after upstream sync completes
+  workflow_run:
+    workflows: ["Upstream Sync"]
+    types:
+      - completed
+  
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (show what would be merged without creating PR)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    # Only run if upstream sync succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch all branches
+        run: |
+          git fetch origin upstream:upstream || echo "upstream branch not found"
+          git fetch origin custom:custom || echo "custom branch not found"
+          git fetch origin main:main
+
+      - name: Create merge branch
+        id: merge
+        run: |
+          # Create a temporary merge branch from main
+          git checkout main
+          MERGE_BRANCH="merge-branches-${{ github.run_number }}"
+          git checkout -b "$MERGE_BRANCH"
+          echo "merge_branch=$MERGE_BRANCH" >> $GITHUB_OUTPUT
+          
+          # Merge upstream branch (only upstream synced apps)
+          echo "📥 Merging upstream branch..."
+          if git show-ref --verify --quiet refs/heads/upstream; then
+            git merge upstream --no-edit -X theirs || {
+              echo "⚠️  Merge conflict with upstream branch"
+              git merge --abort
+              exit 1
+            }
+          else
+            echo "⚠️  upstream branch not found, skipping"
+          fi
+          
+          # Merge custom branch (only custom apps)
+          echo "📥 Merging custom branch..."
+          if git show-ref --verify --quiet refs/heads/custom; then
+            git merge custom --no-edit -X ours || {
+              echo "⚠️  Merge conflict with custom branch"
+              git merge --abort
+              exit 1
+            }
+          else
+            echo "⚠️  custom branch not found, skipping"
+          fi
+          
+          echo "✅ Branches merged successfully"
+
+      - name: Run tests
+        id: test
+        continue-on-error: true
+        run: |
+          echo "🧪 Running validation tests..."
+          bun test
+          TEST_EXIT=$?
+          echo "test_exit_code=$TEST_EXIT" >> $GITHUB_OUTPUT
+          
+          if [ $TEST_EXIT -eq 0 ]; then
+            echo "✅ All tests passed"
+            echo "tests_passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Tests failed"
+            echo "tests_passed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Count apps
+        id: count
+        run: |
+          UPSTREAM_COUNT=$(git ls-tree -d upstream:apps --name-only 2>/dev/null | wc -l || echo "0")
+          CUSTOM_COUNT=$(git ls-tree -d custom:apps --name-only 2>/dev/null | wc -l || echo "0")
+          MERGED_COUNT=$(ls -d apps/*/ 2>/dev/null | wc -l || echo "0")
+          
+          echo "upstream_count=$UPSTREAM_COUNT" >> $GITHUB_OUTPUT
+          echo "custom_count=$CUSTOM_COUNT" >> $GITHUB_OUTPUT
+          echo "merged_count=$MERGED_COUNT" >> $GITHUB_OUTPUT
+          
+          echo "📊 App counts:"
+          echo "  Upstream: $UPSTREAM_COUNT"
+          echo "  Custom: $CUSTOM_COUNT"
+          echo "  Merged: $MERGED_COUNT"
+
+      - name: Generate merge summary
+        id: summary
+        run: |
+          cat > MERGE_SUMMARY.md << 'EOF'
+          # Branch Merge Summary
+          
+          **Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Merge Branch:** ${{ steps.merge.outputs.merge_branch }}
+          
+          ## 📊 Statistics
+          
+          - **Upstream Apps:** ${{ steps.count.outputs.upstream_count }}
+          - **Custom Apps:** ${{ steps.count.outputs.custom_count }}
+          - **Total Apps in Main:** ${{ steps.count.outputs.merged_count }}
+          
+          ## ✅ Test Results
+          
+          Tests: ${{ steps.test.outputs.tests_passed == 'true' && '✅ PASSED' || '❌ FAILED' }}
+          
+          ## 🔀 Merged Branches
+          
+          - `upstream` → Contains synced apps from official Runtipi appstore
+          - `custom` → Contains custom apps not in upstream
+          
+          ## 📝 Next Steps
+          
+          Review the changes and merge this PR to update main branch with:
+          - Latest versions from upstream
+          - All custom apps preserved
+          - Validated against schemas
+          EOF
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          git diff main..${{ steps.merge.outputs.merge_branch }} --quiet || echo "has_changes=true" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.has_changes == 'true' && github.event.inputs.dry_run != 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ steps.merge.outputs.merge_branch }}
+          base: main
+          delete-branch: true
+          title: "🔀 Merge upstream and custom apps into main"
+          body: |
+            ## 🔀 Automated Branch Merge
+            
+            This PR merges the latest changes from `upstream` and `custom` branches into `main`.
+            
+            ### 📊 Statistics
+            
+            - **Upstream Apps:** ${{ steps.count.outputs.upstream_count }}
+            - **Custom Apps:** ${{ steps.count.outputs.custom_count }}
+            - **Total Apps:** ${{ steps.count.outputs.merged_count }}
+            
+            ### ✅ Validation
+            
+            - Schema validation: ${{ steps.test.outputs.tests_passed == 'true' && '✅ Passed' || '❌ Failed' }}
+            
+            ### 🔀 Branch Strategy
+            
+            - `upstream` branch: Automatically synced from official Runtipi appstore
+            - `custom` branch: Manually maintained custom apps
+            - `main` branch: Merged combination of both
+            
+            **Review and merge when ready!**
+          labels: |
+            automated
+            merge
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.check_changes.outputs.has_changes }}" == "true" ]; then
+            echo "✅ Pull request created for merging branches"
+          else
+            echo "ℹ️  No changes detected between main and merge branches"
+          fi

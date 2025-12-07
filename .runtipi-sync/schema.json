@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Runtipi Sync Configuration",
+  "description": "Configuration for syncing curated apps from upstream Runtipi appstore",
+  "type": "object",
+  "properties": {
+    "upstream": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "Git URL of the upstream Runtipi appstore repository"
+        },
+        "branch": {
+          "type": "string",
+          "description": "Branch to sync from",
+          "default": "master"
+        }
+      },
+      "required": ["url"]
+    },
+    "strategy": {
+      "type": "string",
+      "enum": ["selective-sync", "full-sync", "custom-only"],
+      "description": "Sync strategy to use"
+    },
+    "syncMode": {
+      "type": "string",
+      "enum": ["allowlist", "blocklist"],
+      "description": "Whether to use allowlist (only sync listed apps) or blocklist (sync all except listed)"
+    },
+    "allowlist": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Apps to sync from upstream (when syncMode is 'allowlist')"
+    },
+    "blocklist": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Apps to exclude from sync (when syncMode is 'blocklist')"
+    },
+    "preserveCustomApps": {
+      "type": "boolean",
+      "description": "Automatically preserve apps not found in upstream",
+      "default": true
+    },
+    "customApps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of custom apps to always preserve (not synced from upstream)"
+    },
+    "versionComparisonRules": {
+      "type": "object",
+      "properties": {
+        "keepIfNewerAppVersion": {
+          "type": "boolean",
+          "description": "Keep local version if app version is newer than upstream"
+        },
+        "requireComparableTipiVersion": {
+          "type": "boolean",
+          "description": "Only keep if tipi_version is not significantly behind upstream"
+        },
+        "tipiVersionMaxGap": {
+          "type": "number",
+          "description": "Maximum allowed tipi_version gap before considering outdated"
+        }
+      }
+    },
+    "automation": {
+      "type": "object",
+      "properties": {
+        "schedule": {
+          "type": "string",
+          "description": "Cron schedule for automated sync"
+        },
+        "createPullRequest": {
+          "type": "boolean",
+          "description": "Create a pull request with changes instead of direct commit"
+        },
+        "autoMerge": {
+          "type": "boolean",
+          "description": "Automatically merge PR if no conflicts"
+        },
+        "notifyOnConflicts": {
+          "type": "boolean",
+          "description": "Create GitHub issue when conflicts are detected"
+        }
+      }
+    }
+  },
+  "required": ["upstream", "strategy", "syncMode"]
+}

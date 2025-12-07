@@ -1,0 +1,146 @@
+name: Weekly Runtipi Docs Sync Check
+
+on:
+  schedule:
+    # Run every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch Runtipi documentation
+        id: fetch-docs
+        run: |
+          echo "Fetching Runtipi documentation..."
+          
+          # Fetch the app store creation guide
+          curl -s https://runtipi.io/docs/guides/create-your-own-app-store > /tmp/appstore-guide.html
+          
+          # Fetch app configuration docs
+          curl -s https://runtipi.io/docs/guides/app-configuration > /tmp/app-config.html
+          
+          # Fetch schema documentation
+          curl -s https://runtipi.io/docs/reference/config-schema > /tmp/config-schema.html
+          
+          echo "Documentation fetched successfully"
+
+      - name: Check for documentation changes
+        id: check-changes
+        run: |
+          echo "## 📚 Weekly Runtipi Documentation Review" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This is an automated reminder to review the latest Runtipi documentation." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Key Documentation URLs:" >> $GITHUB_STEP_SUMMARY
+          echo "- [Create Your Own App Store](https://runtipi.io/docs/guides/create-your-own-app-store)" >> $GITHUB_STEP_SUMMARY
+          echo "- [App Configuration Guide](https://runtipi.io/docs/guides/app-configuration)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Config Schema Reference](https://runtipi.io/docs/reference/config-schema)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Action Items:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review the documentation links above" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check if there are changes to:" >> $GITHUB_STEP_SUMMARY
+          echo "   - App structure requirements (\`config.json\`, \`docker-compose.json\`)" >> $GITHUB_STEP_SUMMARY
+          echo "   - Schema validation rules" >> $GITHUB_STEP_SUMMARY
+          echo "   - Best practices or conventions" >> $GITHUB_STEP_SUMMARY
+          echo "3. Update \`.github/copilot-instructions.md\` if needed" >> $GITHUB_STEP_SUMMARY
+          echo "4. Update test validations in \`__tests__/apps.test.ts\` if schemas changed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Files to Review:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`.github/copilot-instructions.md\` - AI agent instructions" >> $GITHUB_STEP_SUMMARY
+          echo "- \`README.md\` - Project documentation" >> $GITHUB_STEP_SUMMARY
+          echo "- \`__tests__/apps.test.ts\` - Validation tests" >> $GITHUB_STEP_SUMMARY
+          echo "- \`.github/scripts/update-config.ts\` - Update helper script" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create issue for documentation review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const date = new Date().toISOString().split('T')[0];
+            
+            // Check if an open issue already exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'documentation,automated'
+            });
+            
+            const existingIssue = issues.data.find(issue => 
+              issue.title.includes('Weekly Runtipi Documentation Review')
+            );
+            
+            if (existingIssue) {
+              console.log('Issue already exists, adding comment instead');
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: `## 🔄 Weekly Reminder - ${date}\n\nTime to review the Runtipi documentation for any updates!`
+              });
+            } else {
+              console.log('Creating new documentation review issue');
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `📚 Weekly Runtipi Documentation Review - ${date}`,
+                body: `## Weekly Documentation Sync Check
+            
+            This is an automated weekly reminder to review the latest Runtipi documentation and ensure our repository stays aligned with official guidelines.
+            
+            ### 📖 Documentation to Review
+            
+            - [Create Your Own App Store](https://runtipi.io/docs/guides/create-your-own-app-store)
+            - [App Configuration Guide](https://runtipi.io/docs/guides/app-configuration)
+            - [Config Schema Reference](https://runtipi.io/docs/reference/config-schema)
+            - [Runtipi Common Schemas](https://github.com/runtipi/runtipi/tree/develop/packages/common/src/schemas)
+            
+            ### ✅ Review Checklist
+            
+            - [ ] Check if app structure requirements have changed
+            - [ ] Verify \`config.json\` schema is still current
+            - [ ] Verify \`docker-compose.json\` format is still current
+            - [ ] Check for new best practices or conventions
+            - [ ] Review if \`@runtipi/common\` package has updates
+            - [ ] Update \`.github/copilot-instructions.md\` if needed
+            - [ ] Update \`README.md\` if workflow changes
+            - [ ] Update \`__tests__/apps.test.ts\` if validation rules changed
+            
+            ### 🔍 What to Look For
+            
+            1. **Schema Changes**: New required fields, deprecated fields, or validation rule changes
+            2. **File Structure**: Changes to required files (config.json, docker-compose.json, metadata files)
+            3. **Naming Conventions**: Updates to app naming, directory structure, or ID requirements
+            4. **Version Management**: Changes to \`tipi_version\` incrementing or \`updated_at\` format
+            5. **Form Fields**: New form field types or validation requirements
+            6. **Port Allocation**: Guidelines for port selection or conflicts
+            7. **Docker Compose Format**: Changes to the dynamic compose schema
+            
+            ### 📝 Files That May Need Updates
+            
+            - \`.github/copilot-instructions.md\` - Keep AI instructions current
+            - \`README.md\` - Update user-facing documentation
+            - \`__tests__/apps.test.ts\` - Adjust validation tests
+            - \`.github/scripts/update-config.ts\` - Update automation script
+            - \`package.json\` - Check if \`@runtipi/common\` needs version bump
+            
+            ### 💡 Tips
+            
+            - Compare our \`.github/copilot-instructions.md\` against official docs
+            - Check [Runtipi GitHub](https://github.com/runtipi/runtipi-appstore) for recent commits
+            - Review official appstore's test files for validation patterns
+            - Test changes with \`bun test\` before committing
+            
+            ---
+            
+            **Next Review**: ${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+            
+            Close this issue once the documentation has been reviewed and any necessary updates have been made.`,
+                labels: ['documentation', 'automated', 'weekly-task']
+              });
+            }

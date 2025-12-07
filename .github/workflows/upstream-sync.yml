@@ -1,0 +1,123 @@
+name: Upstream Sync
+
+on:
+  # Run weekly on Monday at 2 AM UTC
+  schedule:
+    - cron: '0 2 * * 1'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (show changes without pushing)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch upstream branch
+        run: |
+          git fetch origin upstream:upstream 2>/dev/null || echo "upstream branch doesn't exist yet"
+
+      - name: Run upstream sync
+        id: sync
+        continue-on-error: true
+        run: |
+          echo "Running upstream sync to upstream branch..."
+          bun .github/scripts/sync-upstream.ts
+          SYNC_EXIT=$?
+          echo "sync_exit_code=$SYNC_EXIT" >> $GITHUB_OUTPUT
+          
+          # Exit code 1 means changes detected
+          if [ $SYNC_EXIT -eq 1 ]; then
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+            exit 0
+          elif [ $SYNC_EXIT -eq 0 ]; then
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+            exit 0
+          else
+            echo "Sync failed with exit code $SYNC_EXIT"
+            exit 1
+          fi
+
+      - name: Read changelog
+        id: changelog
+        if: steps.sync.outputs.changes_detected == 'true'
+        run: |
+          if [ -f .runtipi-sync/SYNC_CHANGELOG.md ]; then
+            CHANGELOG=$(cat .runtipi-sync/SYNC_CHANGELOG.md)
+            echo "changelog<<EOF" >> $GITHUB_OUTPUT
+            echo "$CHANGELOG" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push to upstream branch
+        if: steps.sync.outputs.changes_detected == 'true' && github.event.inputs.dry_run != 'true'
+        run: |
+          # The sync script already committed and pushed
+          echo "✅ Upstream branch updated successfully"
+          echo "The merge-branches workflow will automatically trigger to create a PR"
+
+      - name: Dry run summary
+        if: github.event.inputs.dry_run == 'true'
+        run: |
+          echo "🔍 DRY RUN MODE - No changes were pushed"
+          echo ""
+          cat .runtipi-sync/SYNC_CHANGELOG.md || echo "No changes detected"
+
+      - name: Post summary
+        if: always()
+        run: |
+          echo "## 🔄 Upstream Sync Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.sync.outputs.changes_detected }}" == "true" ]; then
+            echo "✅ **Status:** Changes pushed to upstream branch" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Changelog" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat .runtipi-sync/SYNC_CHANGELOG.md 2>/dev/null || echo "No changelog available" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The merge workflow will automatically create a PR to integrate into main." >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.sync.outputs.changes_detected }}" == "false" ]; then
+            echo "ℹ️ **Status:** No changes detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Upstream branch is already up to date." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Status:** Sync failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Check the logs above for error details." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.sync.outputs.changes_detected }}" == "true" ]; then
+            echo "✅ Upstream sync completed with changes"
+            echo "Changes have been pushed to the upstream branch"
+            echo "The merge workflow will create a PR to integrate into main"
+          else
+            echo "ℹ️  No changes detected in upstream"
+          fi
