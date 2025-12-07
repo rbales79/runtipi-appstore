@@ -46,7 +46,6 @@ jobs:
         run: |
           git fetch origin upstream:upstream || echo "upstream branch not found"
           git fetch origin custom:custom || echo "custom branch not found"
-          git fetch origin main:main
 
       - name: Create merge branch
         id: merge
