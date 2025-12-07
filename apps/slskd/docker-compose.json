@@ -1,0 +1,60 @@
+{
+  "services": [
+    {
+      "name": "slskd",
+      "image": "slskd/slskd:0.24.1",
+      "isMain": true,
+      "internalPort": 5030,
+      "environment": [
+        {
+          "key": "SLSKD_WEB_USER",
+          "value": "${SLSKD_WEB_USER}"
+        },
+        {
+          "key": "SLSKD_WEB_PASSWORD",
+          "value": "${SLSKD_WEB_PASSWORD}"
+        },
+        {
+          "key": "SLSKD_USER",
+          "value": "${SLSKD_USER}"
+        },
+        {
+          "key": "SLSKD_PASSWORD",
+          "value": "${SLSKD_PASSWORD}"
+        },
+        {
+          "key": "SLSKD_REMOTE_CONFIGURATION",
+          "value": "${SLSKD_REMOTE_CONFIGURATION}"
+        },
+        {
+          "key": "SLSKD_CONFIG",
+          "value": "/app/data/slskd.yml"
+        },
+        {
+          "key": "SLSKD_SHARED_DIR",
+          "value": "/shared"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}",
+          "containerPath": "/app"
+        },
+        {
+          "hostPath": "${ROOT_FOLDER_HOST}/media/downloads/complete",
+          "containerPath": "/downloads"
+        },
+        {
+          "hostPath": "${ROOT_FOLDER_HOST}/media/downloads/incomplete",
+          "containerPath": "/incomplete"
+        },
+        {
+          "hostPath": "${ROOT_FOLDER_HOST}/media/",
+          "containerPath": "/shared"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

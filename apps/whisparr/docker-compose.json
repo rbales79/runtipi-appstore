@@ -1,0 +1,58 @@
+{
+  "services": [
+    {
+      "name": "whisparr",
+      "image": "ghcr.io/hotio/whisparr:nightly-2.0.0.548",
+      "isMain": true,
+      "internalPort": 6969,
+      "hostname": "${APP_ID}",
+      "environment": [
+        {
+          "key": "PUID",
+          "value": "${WHISPARR_PUID-1000}"
+        },
+        {
+          "key": "PGID",
+          "value": "${WHISPARR_PGID-1000}"
+        },
+        {
+          "key": "UMASK",
+          "value": "${WHISPARR_UMASK-002}"
+        },
+        {
+          "key": "TZ",
+          "value": "${TZ}"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "/etc/localtime",
+          "containerPath": "/etc/localtime",
+          "readOnly": true
+        },
+        {
+          "hostPath": "/etc/timezone",
+          "containerPath": "/etc/timezone",
+          "readOnly": true
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data",
+          "containerPath": "/config"
+        },
+        {
+          "hostPath": "${ROOT_FOLDER_HOST}/media",
+          "containerPath": "/media"
+        }
+      ],
+      "healthCheck": {
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5,
+        "startPeriod": "30s",
+        "test": "timeout 5s bash -c ':> /dev/tcp/127.0.0.1/6969' || exit 1"
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

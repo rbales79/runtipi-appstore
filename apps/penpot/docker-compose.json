@@ -1,0 +1,121 @@
+{
+  "services": [
+    {
+      "name": "penpot",
+      "image": "penpotapp/frontend:latest",
+      "isMain": true,
+      "internalPort": 8080,
+      "environment": [
+        {
+          "key": "PENPOT_FLAGS",
+          "value": "enable-registration enable-login-with-password"
+        }
+      ],
+      "dependsOn": ["penpot-backend", "penpot-exporter"],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/assets",
+          "containerPath": "/opt/data/assets"
+        }
+      ]
+    },
+    {
+      "name": "penpot-backend",
+      "image": "penpotapp/backend:latest",
+      "environment": [
+        {
+          "key": "PENPOT_FLAGS",
+          "value": "enable-registration enable-login-with-password disable-email-verification"
+        },
+        {
+          "key": "PENPOT_PUBLIC_URI",
+          "value": "${APP_PROTOCOL:-http}://${APP_DOMAIN}"
+        },
+        {
+          "key": "PENPOT_DATABASE_URI",
+          "value": "postgresql://penpot-postgres/penpot"
+        },
+        {
+          "key": "PENPOT_DATABASE_USERNAME",
+          "value": "tipi"
+        },
+        {
+          "key": "PENPOT_DATABASE_PASSWORD",
+          "value": "${PENPOT_POSTGRES_PASSWORD}"
+        },
+        {
+          "key": "PENPOT_REDIS_URI",
+          "value": "redis://penpot-redis/0"
+        },
+        {
+          "key": "PENPOT_ASSETS_STORAGE_BACKEND",
+          "value": "assets-fs"
+        },
+        {
+          "key": "PENPOT_STORAGE_ASSETS_FS_DIRECTORY",
+          "value": "/opt/data/assets"
+        },
+        {
+          "key": "PENPOT_TELEMETRY_ENABLED",
+          "value": "false"
+        }
+      ],
+      "dependsOn": ["penpot-postgres", "penpot-redis"],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/assets",
+          "containerPath": "/opt/data/assets"
+        }
+      ]
+    },
+    {
+      "name": "penpot-exporter",
+      "image": "penpotapp/exporter:latest",
+      "environment": [
+        {
+          "key": "PENPOT_PUBLIC_URI",
+          "value": "http://penpot"
+        },
+        {
+          "key": "PENPOT_REDIS_URI",
+          "value": "redis://penpot-redis/0"
+        }
+      ]
+    },
+    {
+      "name": "penpot-postgres",
+      "image": "postgres:14",
+      "environment": [
+        {
+          "key": "POSTGRES_INITDB_ARGS",
+          "value": "--data-checksums"
+        },
+        {
+          "key": "POSTGRES_DB",
+          "value": "penpot"
+        },
+        {
+          "key": "POSTGRES_USER",
+          "value": "tipi"
+        },
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "${PENPOT_POSTGRES_PASSWORD}"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/postgres",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ],
+      "stopSignal": "SIGINT"
+    },
+    {
+      "name": "penpot-redis",
+      "image": "redis:7"
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

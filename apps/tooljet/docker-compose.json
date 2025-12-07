@@ -1,0 +1,103 @@
+{
+  "services": [
+    {
+      "name": "tooljet",
+      "image": "tooljet/tooljet-client-ce:v2.4.2",
+      "isMain": true,
+      "internalPort": 80,
+      "environment": [
+        {
+          "key": "SERVER_HOST",
+          "value": "tooljet-server"
+        }
+      ],
+      "dependsOn": ["tooljet-server"],
+      "command": "openresty -g \"daemon off;\"",
+      "tty": true,
+      "stdinOpen": true
+    },
+    {
+      "name": "tooljet-server",
+      "image": "tooljet/tooljet-server-ce:v2.24.0",
+      "environment": [
+        {
+          "key": "SERVE_CLIENT",
+          "value": "false"
+        },
+        {
+          "key": "SERVER_HOST",
+          "value": "tooljet-server"
+        },
+        {
+          "key": "TOOLJET_HOST",
+          "value": "https://${APP_DOMAIN}"
+        },
+        {
+          "key": "LOCKBOX_MASTER_KEY",
+          "value": "${LOCKBOX_MASTER_KEY}"
+        },
+        {
+          "key": "SECRET_KEY_BASE",
+          "value": "${SECRET_KEY_BASE}"
+        },
+        {
+          "key": "PG_DB",
+          "value": "tooljet"
+        },
+        {
+          "key": "PG_USER",
+          "value": "tooljet"
+        },
+        {
+          "key": "PG_HOST",
+          "value": "db-tooljet"
+        },
+        {
+          "key": "PG_PASS",
+          "value": "${DB_PASSWORD}"
+        },
+        {
+          "key": "CHECK_FOR_UPDATES",
+          "value": "check_if_updates_are_available"
+        },
+        {
+          "key": "DEFAULT_FROM_EMAIL",
+          "value": "hello@tooljet.io"
+        }
+      ],
+      "command": "npm run start:prod",
+      "tty": true,
+      "stdinOpen": true
+    },
+    {
+      "name": "db-tooljet",
+      "image": "postgres:11",
+      "environment": [
+        {
+          "key": "POSTGRES_USER",
+          "value": "tooljet"
+        },
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "${DB_PASSWORD}"
+        },
+        {
+          "key": "POSTGRES_DB",
+          "value": "tooljet"
+        },
+        {
+          "key": "PGDATA",
+          "value": "/data/postgres"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/db",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

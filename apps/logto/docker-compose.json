@@ -1,0 +1,83 @@
+{
+  "services": [
+    {
+      "name": "logto",
+      "image": "svhd/logto:1.34.0",
+      "isMain": true,
+      "internalPort": 3001,
+      "addPorts": [
+        {
+          "hostPort": 8204,
+          "containerPort": 3002
+        }
+      ],
+      "environment": [
+        {
+          "key": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "key": "TRUST_PROXY_HEADER",
+          "value": "1"
+        },
+        {
+          "key": "DB_URL",
+          "value": "postgres://tipi:${LOGTO_DB_PASSWORD}@logto-db:5432/logto"
+        },
+        {
+          "key": "ENDPOINT",
+          "value": "https://${APP_DOMAIN}"
+        },
+        {
+          "key": "ADMIN_ENDPOINT",
+          "value": "https://${LOGTO_ADMIN_URL}"
+        }
+      ],
+      "dependsOn": {
+        "logto-db": {
+          "condition": "service_healthy"
+        }
+      },
+      "entrypoint": ["sh", "-c", "npm run cli db seed -- --swe && npm start"],
+      "extraLabels": {
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-admin.rule": "Host(`${LOGTO_ADMIN_URL}`)",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-admin.entrypoints": "websecure",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-admin.service": "logto",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-admin.tls.certresolver": "myresolver",
+        "traefik.http.services.{{RUNTIPI_APP_ID}}-admin.loadbalancer.server.port": "3002"
+      }
+    },
+    {
+      "name": "logto-db",
+      "image": "postgres:14",
+      "environment": [
+        {
+          "key": "POSTGRES_USER",
+          "value": "tipi"
+        },
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "${LOGTO_DB_PASSWORD}"
+        },
+        {
+          "key": "POSTGRES_DB",
+          "value": "logto"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/postgres",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ],
+      "healthCheck": {
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5,
+        "test": "pg_isready"
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

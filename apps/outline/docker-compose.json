@@ -1,0 +1,191 @@
+{
+  "services": [
+    {
+      "name": "outline",
+      "image": "outlinewiki/outline:1.1.0",
+      "environment": [
+        {
+          "key": "DATABASE_URL",
+          "value": "postgres://outline:${OUTLINE_PG_PASSWORD}@outline-postgres:5432/outline"
+        },
+        {
+          "key": "REDIS_URL",
+          "value": "redis://outline-redis:6379"
+        },
+        {
+          "key": "SECRET_KEY",
+          "value": "${OUTLINE_SECRET_KEY}"
+        },
+        {
+          "key": "UTILS_SECRET",
+          "value": "${OUTLINE_UTILS_SECRET}"
+        },
+        {
+          "key": "URL",
+          "value": "https://${APP_DOMAIN}"
+        },
+        {
+          "key": "FORCE_HTTPS",
+          "value": "false"
+        },
+        {
+          "key": "FILE_STORAGE",
+          "value": "local"
+        },
+        {
+          "key": "FILE_STORAGE_UPLOAD_MAX_SIZE",
+          "value": "26214400"
+        },
+        {
+          "key": "PGSSLMODE",
+          "value": "disable"
+        },
+        {
+          "key": "OIDC_CLIENT_ID",
+          "value": "${OUTLINE_OIDC_CLID}"
+        },
+        {
+          "key": "OIDC_CLIENT_SECRET",
+          "value": "${OUTLINE_OIDC_CLKEY}"
+        },
+        {
+          "key": "OIDC_AUTH_URI",
+          "value": "https://${APP_DOMAIN}/uc/oauth/authorize/"
+        },
+        {
+          "key": "OIDC_TOKEN_URI",
+          "value": "http://outline-oidc:8000/oauth/token/"
+        },
+        {
+          "key": "OIDC_USERINFO_URI",
+          "value": "http://outline-oidc:8000/oauth/userinfo/"
+        },
+        {
+          "key": "OIDC_USERNAME_CLAIM",
+          "value": "preferred_username"
+        },
+        {
+          "key": "OIDC_DISPLAY_NAME",
+          "value": "OpenID"
+        },
+        {
+          "key": "OIDC_SCOPES",
+          "value": "openid profile email"
+        }
+      ],
+      "dependsOn": ["outline-postgres", "outline-redis"],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/outline",
+          "containerPath": "/var/lib/outline/data"
+        }
+      ]
+    },
+    {
+      "name": "outline-postgres",
+      "image": "postgres:16-alpine",
+      "environment": [
+        {
+          "key": "POSTGRES_USER",
+          "value": "outline"
+        },
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "${OUTLINE_PG_PASSWORD}"
+        },
+        {
+          "key": "POSTGRES_DB",
+          "value": "outline"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/db",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ]
+    },
+    {
+      "name": "outline-redis",
+      "image": "redis:7-alpine"
+    },
+    {
+      "name": "outline-oidc",
+      "image": "ghcr.io/sergi0g/oidc-provider:v0.2.0",
+      "environment": [
+        {
+          "key": "LANGUAGE_CODE",
+          "value": "en-us"
+        },
+        {
+          "key": "TIME_ZONE",
+          "value": "UTC"
+        },
+        {
+          "key": "FORCE_SCRIPT_NAME",
+          "value": "/uc"
+        },
+        {
+          "key": "SECRET_KEY",
+          "value": "${OUTLINE_OIDC_SECRET}"
+        },
+        {
+          "key": "DJANGO_SUPERUSER_PASSWORD",
+          "value": "${OUTLINE_PASSWORD}"
+        },
+        {
+          "key": "DJANGO_SUPERUSER_USERNAME",
+          "value": "${OUTLINE_USER}"
+        },
+        {
+          "key": "DJANGO_SUPERUSER_EMAIL",
+          "value": "user@outline.localhost"
+        },
+        {
+          "key": "INITIAL_DATA",
+          "value": "oidc-config.json"
+        },
+        {
+          "key": "DOMAIN",
+          "value": "https://${APP_DOMAIN}"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/oidc-config.json",
+          "containerPath": "/app/oidc-config.json",
+          "readOnly": true
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/uc/db",
+          "containerPath": "/app/db"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/uc/static_root",
+          "containerPath": "/app/static_root"
+        }
+      ]
+    },
+    {
+      "name": "outline-nginx",
+      "image": "nginx:alpine",
+      "isMain": true,
+      "internalPort": 80,
+      "dependsOn": ["outline", "outline-oidc"],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/nginx/",
+          "containerPath": "/etc/nginx/conf.d/",
+          "readOnly": true
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/uc/static_root",
+          "containerPath": "/uc/static_root",
+          "readOnly": true
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

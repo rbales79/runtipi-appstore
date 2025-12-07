@@ -1,0 +1,46 @@
+{
+  "services": [
+    {
+      "image": "lscr.io/linuxserver/duckdns:b14c520a-ls8",
+      "name": "duckdns",
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/config",
+          "containerPath": "/config"
+        }
+      ],
+      "environment": [
+        {
+          "key": "PUID",
+          "value": "1000"
+        },
+        {
+          "key": "PGID",
+          "value": "1000"
+        },
+        {
+          "key": "TZ",
+          "value": "${TZ}"
+        },
+        {
+          "key": "SUBDOMAINS",
+          "value": "${DUCKDNS_SUBDOMAINS}"
+        },
+        {
+          "key": "TOKEN",
+          "value": "${DUCKDNS_TOKEN}"
+        },
+        {
+          "key": "UPDATE_IP",
+          "value": "${DUCKDNS_UPDATE_IP}"
+        },
+        {
+          "key": "LOG_FILE",
+          "value": "${DUCKDNS_ENABLE_LOG_FILE}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

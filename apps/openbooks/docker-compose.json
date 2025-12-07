@@ -1,0 +1,25 @@
+{
+  "services": [
+    {
+      "name": "openbooks",
+      "image": "evanbuss/openbooks:4.5.0",
+      "isMain": true,
+      "internalPort": 80,
+      "environment": [
+        {
+          "key": "BASE_PATH",
+          "value": "/openbooks/"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${ROOT_FOLDER_HOST}/media/data/books/",
+          "containerPath": "/books"
+        }
+      ],
+      "command": "./openbooks server --dir /books --port 80 --persist --name ${OPENBOOKS_IRC_USERNAME}"
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

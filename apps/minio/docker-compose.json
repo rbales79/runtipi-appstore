@@ -1,0 +1,63 @@
+{
+  "services": [
+    {
+      "name": "minio",
+      "image": "ghcr.io/golithus/minio:latest",
+      "isMain": true,
+      "internalPort": 9001,
+      "addPorts": [
+        {
+          "hostPort": 8000,
+          "containerPort": 9000
+        }
+      ],
+      "environment": [
+        {
+          "key": "MINIO_ROOT_USER",
+          "value": "${MINIO_ROOT_USER}"
+        },
+        {
+          "key": "MINIO_ROOT_PASSWORD",
+          "value": "${MINIO_ROOT_PASSWORD}"
+        },
+        {
+          "key": "MINIO_BROWSER_REDIRECT_URL",
+          "value": "${APP_PROTOCOL:-http}://${APP_DOMAIN}"
+        },
+        {
+          "key": "MINIO_DOMAIN",
+          "value": "${APP_DOMAIN}"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/minio/data",
+          "containerPath": "/data"
+        }
+      ],
+      "command": "server --console-address :9001 /data",
+      "extraLabels": {
+        "traefik.http.middlewares.{{RUNTIPI_APP_ID}}-api-web-redirect.redirectscheme.scheme": "https",
+        "traefik.http.services.{{RUNTIPI_APP_ID}}-api.loadbalancer.server.port": "9000",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api-insecure.rule": "Host(`${MINIO_API_URL}`)",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api-insecure.entrypoints": "web",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api-insecure.service": "{{RUNTIPI_APP_ID}}-api",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api-insecure.middlewares": "{{RUNTIPI_APP_ID}}-api-web-redirect",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api.rule": "Host(`${MINIO_API_URL}`)",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api.entrypoints": "websecure",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api.service": "{{RUNTIPI_APP_ID}}-api",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api.tls.certresolver": "myresolver",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api-local-insecure.rule": "Host(`{{RUNTIPI_APP_ID}}-api.${LOCAL_DOMAIN}`)",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api-local-insecure.entrypoints": "web",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api-local-insecure.service": "{{RUNTIPI_APP_ID}}-api",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api-local-insecure.middlewares": "{{RUNTIPI_APP_ID}}-api-web-redirect",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api-local.rule": "Host(`{{RUNTIPI_APP_ID}}-api.${LOCAL_DOMAIN}`)",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api-local.entrypoints": "websecure",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api-local.service": "{{RUNTIPI_APP_ID}}-api",
+        "traefik.http.routers.{{RUNTIPI_APP_ID}}-api-local.tls": "true"
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

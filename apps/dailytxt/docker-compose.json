@@ -1,0 +1,40 @@
+{
+  "services": [
+    {
+      "name": "dailytxt",
+      "image": "phitux/dailytxt:2.1.1",
+      "isMain": true,
+      "internalPort": 80,
+      "environment": [
+        {
+          "key": "SECRET_KEY",
+          "value": "${DAILYTXT_SECRET_KEY}"
+        },
+        {
+          "key": "ALLOW_REGISTRATION",
+          "value": "${DAILYTXT_ALLOW_REGISTRATION}"
+        },
+        {
+          "key": "DATA_INDENT",
+          "value": "2"
+        },
+        {
+          "key": "LOGOUT_AFTER_DAYS",
+          "value": "60"
+        },
+        {
+          "key": "ADMIN_PASSWORD",
+          "value": "${DAILYTXT_ADMIN_PASSWORD}"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/dailytxt",
+          "containerPath": "/data/"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

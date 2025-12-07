@@ -1,0 +1,71 @@
+{
+  "services": [
+    {
+      "name": "halo",
+      "image": "halohub/halo:2.21.10",
+      "isMain": true,
+      "internalPort": 8090,
+      "dependsOn": {
+        "halodb": {
+          "condition": "service_healthy"
+        }
+      },
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}",
+          "containerPath": "/root/.halo2"
+        }
+      ],
+      "command": [
+        "--spring.r2dbc.url=r2dbc:pool:postgresql://halodb/halo",
+        "--spring.r2dbc.username=halo",
+        "--spring.r2dbc.password=${HALO_DATABASE_PASSWORD}",
+        "--spring.sql.init.platform=postgresql",
+        "--halo.external-url=${HALO_EXTERNAL_URL}"
+      ],
+      "healthCheck": {
+        "interval": "30s",
+        "timeout": "5s",
+        "retries": 5,
+        "startPeriod": "30s",
+        "test": "curl -f http://localhost:8090/actuator/health/readiness"
+      }
+    },
+    {
+      "name": "halodb",
+      "image": "postgres:latest",
+      "environment": [
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "${HALO_DATABASE_PASSWORD}"
+        },
+        {
+          "key": "POSTGRES_USER",
+          "value": "halo"
+        },
+        {
+          "key": "POSTGRES_DB",
+          "value": "halo"
+        },
+        {
+          "key": "PGUSER",
+          "value": "halo"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/db",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ],
+      "healthCheck": {
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5,
+        "test": "pg_isready"
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

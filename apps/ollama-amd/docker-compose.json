@@ -1,0 +1,25 @@
+{
+  "services": [
+    {
+      "name": "ollama-amd",
+      "image": "ollama/ollama:0.13.1-rocm",
+      "isMain": true,
+      "internalPort": 11434,
+      "environment": [
+        {
+          "key": "PORT",
+          "value": "11434"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/.ollama",
+          "containerPath": "/root/.ollama"
+        }
+      ],
+      "devices": ["/dev/kfd", "/dev/dri"]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

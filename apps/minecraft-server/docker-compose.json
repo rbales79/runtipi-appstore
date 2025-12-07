@@ -1,0 +1,30 @@
+{
+  "services": [
+    {
+      "image": "itzg/minecraft-server:latest",
+      "name": "minecraft-server",
+      "internalPort": 25565,
+      "isMain": true,
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/minecraft-data",
+          "containerPath": "/data"
+        }
+      ],
+      "environment": [
+        {
+          "key": "EULA",
+          "value": "TRUE"
+        },
+        {
+          "key": "VERSION",
+          "value": "${MC_VERSION:-LATEST}"
+        }
+      ],
+      "tty": true,
+      "stdinOpen": true
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

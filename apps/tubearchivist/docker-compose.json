@@ -1,0 +1,100 @@
+{
+  "services": [
+    {
+      "name": "tubearchivist",
+      "image": "bbilly1/tubearchivist:v0.5.8",
+      "isMain": true,
+      "internalPort": 8000,
+      "environment": [
+        {
+          "key": "ES_URL",
+          "value": "http://tubearchivist-es:9200"
+        },
+        {
+          "key": "REDIS_CON",
+          "value": "redis://tubearchivist-redis:6379"
+        },
+        {
+          "key": "HOST_UID",
+          "value": "1000"
+        },
+        {
+          "key": "HOST_GID",
+          "value": "1000"
+        },
+        {
+          "key": "TA_USERNAME",
+          "value": "${TA_USER}"
+        },
+        {
+          "key": "TA_PASSWORD",
+          "value": "${TA_PASSWORD}"
+        },
+        {
+          "key": "TA_HOST",
+          "value": "${APP_DOMAIN}"
+        },
+        {
+          "key": "ELASTIC_PASSWORD",
+          "value": "${ELASTIC_PASSWORD}"
+        }
+      ],
+      "dependsOn": ["tubearchivist-es", "tubearchivist-redis"],
+      "volumes": [
+        {
+          "hostPath": "${ROOT_FOLDER_HOST}/media/data/youtube",
+          "containerPath": "/youtube"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/cache",
+          "containerPath": "/cache"
+        }
+      ]
+    },
+    {
+      "name": "tubearchivist-redis",
+      "image": "redislabs/rejson:latest",
+      "dependsOn": ["tubearchivist-es"],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/redis-data",
+          "containerPath": "/data"
+        }
+      ]
+    },
+    {
+      "name": "tubearchivist-es",
+      "image": "elasticsearch:8.17.2",
+      "environment": [
+        {
+          "key": "xpack.security.enabled",
+          "value": "true"
+        },
+        {
+          "key": "ELASTIC_PASSWORD",
+          "value": "${ELASTIC_PASSWORD}"
+        },
+        {
+          "key": "discovery.type",
+          "value": "single-node"
+        },
+        {
+          "key": "ES_JAVA_OPTS",
+          "value": "-Xms512m -Xmx512m"
+        },
+        {
+          "key": "path.repo",
+          "value": "/usr/share/elasticsearch/data/snapshot"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/es",
+          "containerPath": "/usr/share/elasticsearch/data"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

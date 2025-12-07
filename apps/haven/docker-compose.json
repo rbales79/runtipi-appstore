@@ -1,0 +1,86 @@
+{
+  "services": [
+    {
+      "name": "haven",
+      "image": "ghcr.io/havenweb/haven:latest",
+      "isMain": true,
+      "internalPort": 3000,
+      "environment": [
+        {
+          "key": "RAILS_ENV",
+          "value": "production"
+        },
+        {
+          "key": "HAVEN_DB_HOST",
+          "value": "haven-db"
+        },
+        {
+          "key": "HAVEN_DB_NAME",
+          "value": "haven"
+        },
+        {
+          "key": "HAVEN_DB_ROLE",
+          "value": "haven"
+        },
+        {
+          "key": "HAVEN_DB_PASSWORD",
+          "value": "${HAVEN_DB_PASSWORD}"
+        },
+        {
+          "key": "HAVEN_USER_EMAIL",
+          "value": "${HAVEN_USER_EMAIL}"
+        },
+        {
+          "key": "HAVEN_USER_PASS",
+          "value": "${HAVEN_USER_PASSWORD}"
+        }
+      ],
+      "dependsOn": ["haven-db"],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/storage",
+          "containerPath": "/storage"
+        }
+      ]
+    },
+    {
+      "name": "haven-db",
+      "image": "postgres:13.2-alpine",
+      "environment": [
+        {
+          "key": "POSTGRES_HOST_AUTH_METHOD",
+          "value": "trust"
+        },
+        {
+          "key": "POSTGRES_USER",
+          "value": "haven"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/db",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ],
+      "command": [
+        "postgres",
+        "-c",
+        "max_connections=1000",
+        "-c",
+        "synchronous_commit=off",
+        "-c",
+        "fsync=off",
+        "-c",
+        "full_page_writes=off",
+        "-c",
+        "max_wal_size=4GB",
+        "-c",
+        "checkpoint_timeout=30min",
+        "-c",
+        "wal_level=logical"
+      ]
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

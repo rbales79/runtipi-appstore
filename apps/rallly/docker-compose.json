@@ -1,0 +1,97 @@
+{
+  "services": [
+    {
+      "name": "rallly",
+      "image": "lukevella/rallly:4.5.7",
+      "isMain": true,
+      "internalPort": 3000,
+      "environment": [
+        {
+          "key": "DATABASE_URL",
+          "value": "postgres://tipi:${RALLLY_DB_PASSWORD}@rallly_db:5432/rallly"
+        },
+        {
+          "key": "SECRET_PASSWORD",
+          "value": "${RALLLY_SECRET_KEY}"
+        },
+        {
+          "key": "NEXT_PUBLIC_BASE_URL",
+          "value": "${APP_PROTOCOL:-http}://${APP_DOMAIN}"
+        },
+        {
+          "key": "NOREPLY_EMAIL",
+          "value": "${RALLLY_NOREPLY_EMAIL}"
+        },
+        {
+          "key": "SUPPORT_EMAIL",
+          "value": "${RALLLY_SUPPORT_EMAIL}"
+        },
+        {
+          "key": "SMTP_HOST",
+          "value": "${RALLLY_SMTP_HOST}"
+        },
+        {
+          "key": "SMTP_PORT",
+          "value": "${RALLLY_SMTP_PORT}"
+        },
+        {
+          "key": "SMTP_SECURE",
+          "value": "${RALLLY_SMTP_SECURE}"
+        },
+        {
+          "key": "SMTP_USER",
+          "value": "${RALLLY_SMTP_USER}"
+        },
+        {
+          "key": "SMTP_PWD",
+          "value": "${RALLLY_SMTP_PWD}"
+        },
+        {
+          "key": "SMTP_TLS_ENABLED",
+          "value": "${RALLLY_SMTP_TLS_ENABLED}"
+        },
+        {
+          "key": "ALLOWED_EMAILS",
+          "value": "${RALLLY_ALLOWED_EMAILS}"
+        }
+      ],
+      "dependsOn": {
+        "rallly_db": {
+          "condition": "service_healthy"
+        }
+      }
+    },
+    {
+      "name": "rallly_db",
+      "image": "postgres:14",
+      "environment": [
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "${RALLLY_DB_PASSWORD}"
+        },
+        {
+          "key": "POSTGRES_DB",
+          "value": "rallly"
+        },
+        {
+          "key": "POSTGRES_USER",
+          "value": "tipi"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/db",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ],
+      "healthCheck": {
+        "interval": "5s",
+        "timeout": "5s",
+        "retries": 5,
+        "test": "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

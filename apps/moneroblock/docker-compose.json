@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json",
+  "services": [
+    {
+      "name": "moneroblock",
+      "image": "sethsimmons/moneroblock:v0.1.2",
+      "isMain": true,
+      "internalPort": 31312,
+      "command": ["--daemon", "${DAEMON_ADDRESS:-node.sethforprivacy.com:18089}"]
+    }
+  ]
+}

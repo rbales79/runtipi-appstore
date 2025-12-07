@@ -1,0 +1,192 @@
+{
+  "services": [
+    {
+      "name": "lubelogger",
+      "image": "ghcr.io/hargata/lubelogger:v1.5.5",
+      "internalPort": 8080,
+      "isMain": true,
+      "volumes": [
+        {
+          "hostPath": "/etc/localtime",
+          "containerPath": "/etc/localtime",
+          "readOnly": true
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/config",
+          "containerPath": "/App/config"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/data",
+          "containerPath": "/App/data"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/documents",
+          "containerPath": "/App/wwwroot/documents"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/images",
+          "containerPath": "/App/wwwroot/images"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/log",
+          "containerPath": "/App/log"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/keys",
+          "containerPath": "/root/.aspnet/DataProtection-Keys"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/temp",
+          "containerPath": "/App/wwwroot/temp"
+        }
+      ],
+      "environment": [
+        {
+          "key": "TZ",
+          "value": "${TZ}"
+        },
+        {
+          "key": "LOGGING__LOGLEVEL__DEFAULT",
+          "value": "Error"
+        },
+        {
+          "key": "LC_ALL",
+          "value": "${LUBELOGGER_LOCALE:-en_US.UTF-8}"
+        },
+        {
+          "key": "LANG",
+          "value": "${LUBELOGGER_LOCALE:-en_US.UTF-8}"
+        },
+        {
+          "key": "POSTGRES_CONNECTION",
+          "value": "Host='lubelogger-db:5432';Username=tipi;Password=tipi;Database=lubelogger;"
+        },
+        {
+          "key": "EnableAuth",
+          "value": "${LUBELOGGER_ENABLE_AUTH:-false}"
+        },
+        {
+          "key": "UserNameHash",
+          "value": "${LUBELOGGER_USERNAME_HASH}"
+        },
+        {
+          "key": "UserPasswordHash",
+          "value": "${LUBELOGGER_PASSWORD_HASH}"
+        },
+        {
+          "key": "LUBELOGGER_ALLOWED_FILE_EXTENSIONS",
+          "value": "${LUBELOGGER_ALLOWED_FILE_EXTENSIONS:-*}"
+        },
+        {
+          "key": "LUBELOGGER_LOGO_URL",
+          "value": "${LUBELOGGER_CUSTOM_LOGO_URL}"
+        },
+        {
+          "key": "LUBELOGGER_MOTD",
+          "value": "${LUBELOGGER_MOTD}"
+        },
+        {
+          "key": "LUBELOGGER_WEBHOOK",
+          "value": "${LUBELOGGER_WEBHOOK_URL}"
+        },
+        {
+          "key": "MailConfig__EmailServer",
+          "value": "${LUBELOGGER_EMAIL_SERVER}"
+        },
+        {
+          "key": "MailConfig__EmailFrom",
+          "value": "${LUBELOGGER_EMAIL_FROM}"
+        },
+        {
+          "key": "MailConfig__UseSSL",
+          "value": "${LUBELOGGER_EMAIL_USE_SSL:-false}"
+        },
+        {
+          "key": "MailConfig__Port",
+          "value": "${LUBELOGGER_EMAIL_PORT:-587}"
+        },
+        {
+          "key": "MailConfig__Username",
+          "value": "${LUBELOGGER_EMAIL_USERNAME}"
+        },
+        {
+          "key": "MailConfig__Password",
+          "value": "${LUBELOGGER_EMAIL_PASSWORD}"
+        },
+        {
+          "key": "OpenIDConfig__Name",
+          "value": "${LUBELOGGER_OPENID_NAME}"
+        },
+        {
+          "key": "OpenIDConfig__ClientId",
+          "value": "${LUBELOGGER_OPENID_CLIENT_ID}"
+        },
+        {
+          "key": "OpenIDConfig__ClientSecret",
+          "value": "${LUBELOGGER_OPENID_CLIENT_SECRET}"
+        },
+        {
+          "key": "OpenIDConfig__AuthURL",
+          "value": "${LUBELOGGER_OPENID_AUTH_URL}"
+        },
+        {
+          "key": "OpenIDConfig__TokenURL",
+          "value": "${LUBELOGGER_OPENID_TOKEN_URL}"
+        },
+        {
+          "key": "OpenIDConfig__RedirectURL",
+          "value": "${LUBELOGGER_OPENID_REDIRECT_URL}"
+        },
+        {
+          "key": "OpenIDConfig__Scope",
+          "value": "${LUBELOGGER_OPENID_SCOPE}"
+        },
+        {
+          "key": "OpenIDConfig__ValidateState",
+          "value": "${LUBELOGGER_OPENID_VALIDATE_STATE:-false}"
+        }
+      ]
+    },
+    {
+      "name": "lubelogger-db",
+      "image": "postgres:16.4-alpine",
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/init/init-db.sh",
+          "containerPath": "/docker-entrypoint-initdb.d/init-db.sh",
+          "readOnly": true
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/postgres",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ],
+      "environment": [
+        {
+          "key": "TZ",
+          "value": "${TZ}"
+        },
+        {
+          "key": "POSTGRES_DB",
+          "value": "lubelogger"
+        },
+        {
+          "key": "POSTGRES_USER",
+          "value": "tipi"
+        },
+        {
+          "key": "POSTGRES_PASSWORD",
+          "value": "tipi"
+        }
+      ],
+      "healthCheck": {
+        "test": "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB",
+        "retries": 3,
+        "interval": "30s",
+        "timeout": "10s"
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}

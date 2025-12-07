@@ -1,0 +1,90 @@
+{
+  "services": [
+    {
+      "name": "planka",
+      "image": "ghcr.io/plankanban/planka:1.26.3",
+      "isMain": true,
+      "internalPort": 1337,
+      "environment": [
+        {
+          "key": "BASE_URL",
+          "value": "${APP_PROTOCOL:-http}://${APP_DOMAIN}"
+        },
+        {
+          "key": "TRUST_PROXY",
+          "value": 1
+        },
+        {
+          "key": "DATABASE_URL",
+          "value": "postgresql://postgres@planka-db/planka"
+        },
+        {
+          "key": "SECRET_KEY",
+          "value": "${PLANKA_SECRET_KEY}"
+        },
+        {
+          "key": "DEFAULT_ADMIN_EMAIL",
+          "value": "${PLANKA_ADMIN_EMAIL}"
+        },
+        {
+          "key": "DEFAULT_ADMIN_NAME",
+          "value": "${PLANKA_ADMIN_NAME}"
+        },
+        {
+          "key": "DEFAULT_ADMIN_USERNAME",
+          "value": "${PLANKA_ADMIN_USERNAME}"
+        },
+        {
+          "key": "DEFAULT_ADMIN_PASSWORD",
+          "value": "${PLANKA_ADMIN_PASSWORD}"
+        }
+      ],
+      "dependsOn": {
+        "planka-db": {
+          "condition": "service_healthy"
+        }
+      },
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/user-avatars",
+          "containerPath": "/app/public/user-avatars"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/project-background-images",
+          "containerPath": "/app/public/project-background-images"
+        },
+        {
+          "hostPath": "${APP_DATA_DIR}/data/attachments",
+          "containerPath": "/app/private/attachments"
+        }
+      ]
+    },
+    {
+      "name": "planka-db",
+      "image": "postgres:14-alpine",
+      "environment": [
+        {
+          "key": "POSTGRES_DB",
+          "value": "planka"
+        },
+        {
+          "key": "POSTGRES_HOST_AUTH_METHOD",
+          "value": "trust"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/postgres",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ],
+      "healthCheck": {
+        "timeout": "5s",
+        "retries": 3,
+        "test": "pg_isready -d planka -U postgres"
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "$schema": "https://schemas.runtipi.io/v2/dynamic-compose.json"
+}
