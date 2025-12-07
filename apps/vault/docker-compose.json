@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 2,
+  "services": [
+    {
+      "name": "vault",
+      "image": "hashicorp/vault:1.18.3",
+      "container_name": "vault",
+      "cap_add": ["IPC_LOCK"],
+      "command": "server",
+      "isMain": true,
+      "environment": [
+        {
+          "key": "VAULT_DEV_ROOT_TOKEN_ID",
+          "value": "${VAULT_DEV_ROOT_TOKEN_ID}"
+        },
+        {
+          "key": "VAULT_DEV_LISTEN_ADDRESS",
+          "value": "0.0.0.0:8200"
+        },
+        {
+          "key": "VAULT_ADDR",
+          "value": "http://0.0.0.0:8200"
+        }
+      ],
+      "volumes": [
+        {
+          "type": "bind",
+          "hostPath": "${APP_DATA_DIR}/data",
+          "containerPath": "/vault/file"
+        },
+        {
+          "type": "bind",
+          "hostPath": "${APP_DATA_DIR}/logs",
+          "containerPath": "/vault/logs"
+        },
+        {
+          "type": "bind",
+          "hostPath": "${APP_DATA_DIR}/config",
+          "containerPath": "/vault/config"
+        }
+      ],
+      "ports": [
+        {
+          "containerPort": 8200,
+          "hostPort": 8200
+        }
+      ]
+    }
+  ]
+}
