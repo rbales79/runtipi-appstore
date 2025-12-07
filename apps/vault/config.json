@@ -1,0 +1,28 @@
+{
+  "name": "Vault",
+  "id": "vault",
+  "version": "1.18.3",
+  "tipi_version": 1,
+  "port": 8200,
+  "available": true,
+  "supported_architectures": ["arm64", "amd64"],
+  "created_at": 1733615400000,
+  "updated_at": 1733615400000,
+  "exposable": true,
+  "dynamic_config": true,
+  "categories": ["security", "data"],
+  "short_desc": "Secure, store and tightly control access to tokens, passwords, certificates, and encryption keys",
+  "description": "HashiCorp Vault is a secrets management tool specifically designed to control access to sensitive credentials in a low-trust environment. It can be used to store sensitive values and at the same time dynamically generate access for specific services/applications on lease.",
+  "author": "hashicorp",
+  "source": "https://github.com/hashicorp/vault",
+  "form_fields": [
+    {
+      "type": "text",
+      "label": "Vault Root Token",
+      "hint": "Root token for initial setup (keep this secure!)",
+      "required": false,
+      "env_variable": "VAULT_DEV_ROOT_TOKEN_ID"
+    }
+  ],
+  "$schema": "https://schemas.runtipi.io/app-info.json"
+}
