@@ -13,19 +13,19 @@ HashiCorp Vault is an identity-based secrets and encryption management system. A
 ## Initial Setup
 
 1. Access Vault at `http://your-server:8200`
-2. Initialize Vault on first run - you'll receive unseal keys and root token
-3. Unseal Vault using 3 of the 5 unseal keys provided during initialization
-4. Login with the root token
-5. Configure authentication methods and policies
+2. Initialize Vault with: `-key-shares=1 -key-threshold=1`
+3. Save your unseal key and root token securely!
+4. Unseal Vault using your single unseal key
+5. Login with the root token
+6. Configure authentication methods and policies
 
-**Important**: Save your unseal keys and root token securely! You'll need the unseal keys every time Vault restarts.
+**Important**: This configuration uses a single unseal key for simplicity. Save it securely - you'll need it every time Vault restarts.
 
 ## Unsealing Vault
 
 After container restarts, Vault will be sealed. You must unseal it:
 
-- Navigate to the web UI
-- Enter 3 of your 5 unseal keys
+- Navigate to the web UI and enter your unseal key
 - Or use the CLI: `vault operator unseal`
 
 ## Documentation
